@@ -161,3 +161,25 @@ func Buffer(in chan interface{}, count int, skip int) chan interface{} {
 
 	return out
 }
+
+func FlatMap(in chan interface{}) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for {
+			val, ok := <- in
+			if ok {
+				list := val.([] interface{})
+				for _, item := range list {
+					out <- item
+				}
+			} else {
+				return
+			}
+		}
+	}()
+
+	return out
+}

@@ -158,3 +158,9 @@ func TestBuffer(t *testing.T) {
 	out2 := Buffer(From([]interface{}{1,2,3,4}), 2,0)
 	assertChanWithValues(t, out2, []interface{}{[]interface{}{1,2}, []interface{}{3, 4}})
 }
+
+func TestFlatMap(t *testing.T) {
+	in := From([]interface{}{[]interface{}{1,2}, []interface{}{3,4}})
+	out := FlatMap(in)
+	assertChanWithValues(t, out, []interface{}{1,2,3,4})
+}
