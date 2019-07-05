@@ -183,3 +183,29 @@ func FlatMap(in chan interface{}) chan interface {} {
 
 	return out
 }
+
+type GroupByFunc func(interface{}) interface{}
+
+func GroupBy(in chan interface{}, groupByFunc GroupByFunc ) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		result := map[interface{}] []interface{}{}
+		defer func() {
+			out <- result
+			close(out)
+		}()
+
+		for {
+			val, ok := <- in
+			if ok {
+				key := groupByFunc(val)
+				result[key] = append(result[key], val)
+			} else {
+				return
+			}
+		}
+	}()
+
+	return out
+}

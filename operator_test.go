@@ -1,6 +1,7 @@
 package reactive_channel
 
 import (
+	"reflect"
 	"sort"
 	"sync"
 	"testing"
@@ -81,6 +82,13 @@ func assertChanWithValues(t *testing.T, c chan interface{}, vals []interface{}) 
 		t.Errorf("assertChanWithValues fail, chan: %v, array: %v", inVals, vals)
 	}
 }
+
+func assertEqual(t *testing.T, v1 interface{}, v2 interface{}) {
+	if !reflect.DeepEqual(v1, v2) {
+		t.Errorf("assertChanWithValues fail: %v, expected: %v", v1, v2)
+	}
+}
+
 
 func TestFilter(t *testing.T) {
 	in := From([]interface{}{1, 2, 3, 4})
@@ -163,4 +171,30 @@ func TestFlatMap(t *testing.T) {
 	in := From([]interface{}{[]interface{}{1,2}, []interface{}{3,4}})
 	out := FlatMap(in)
 	assertChanWithValues(t, out, []interface{}{1,2,3,4})
+}
+
+func TestGroupBy(t *testing.T) {
+	out1 := To(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
+		num := i.(int)
+		return num % 2 == 0
+	}))
+
+	assertEqual(t, out1[0], map[interface{}][]interface{}{
+		true:  {2, 4},
+		false: {1, 3},
+	})
+
+	out2 := To(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
+		num := i.(int)
+		if num % 2 == 0 {
+			return "even"
+		} else {
+			return "odd"
+		}
+	}))
+
+	assertEqual(t, out2[0], map[interface{}][]interface{}{
+		"odd": {1, 3},
+		"even":  {2, 4},
+	})
 }
