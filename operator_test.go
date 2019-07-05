@@ -43,3 +43,14 @@ func TestMap (t *testing.T) {
 
 	assertChanWithValues(t, out, []interface{}{2,4,6,8})
 }
+
+func TestFilter(t *testing.T) {
+	in := From([]interface{}{1,2,3,4})
+
+	out := Filter(in, func(i interface{}) bool {
+		num := i.(int)
+		return num % 2 == 0
+	})
+
+	assertChanWithValues(t, out, []interface{}{2, 4})
+}

@@ -40,3 +40,25 @@ func Map(in <- chan interface{}, mapFunc MapFunc) chan interface{} {
 
 	return out
 }
+
+type FilterFunc func(interface{}) bool
+
+func Filter(in <- chan interface{}, filterFunc FilterFunc) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		for {
+			val, ok := <- in
+			if ok {
+				if filterFunc(val) {
+					out <- val
+				}
+			} else {
+				close(out)
+				return
+			}
+		}
+	}()
+
+	return out
+}
