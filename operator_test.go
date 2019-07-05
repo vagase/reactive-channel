@@ -1,7 +1,6 @@
 package reactive_channel
 
 import (
-	"fmt"
 	"sort"
 	"sync"
 	"testing"
@@ -55,13 +54,13 @@ func isArrayEqual(v1 SortInterfaceArray, v2 SortInterfaceArray, strict bool) boo
 		return false
 	}
 
-	if ! strict {
+	if !strict {
 		sort.Sort(v1)
 		sort.Sort(v2)
 
 	}
 
-	for index, v := range v1{
+	for index, v := range v1 {
 		if v != v2[index] {
 			return false
 		}
@@ -77,58 +76,37 @@ func assertChanWithValues(t *testing.T, c chan interface{}, vals []interface{}) 
 	}
 }
 
-func TestFromTo(t *testing.T) {
-	in := []interface{}{1,2,3,4}
-	c := From(in)
-	out := To(c)
-
-	if !isArrayEqual(in, out, true) {
-		t.Error("From or To failed")
-	}
-}
-
-func TestMap (t *testing.T) {
-	in := From([]interface{}{1,2,3,4})
-
-	out := Map(in, func(i interface{}) interface{} {
-		num := i.(int)
-		return num * 2
-	})
-
-	assertChanWithValues(t, out, []interface{}{2,4,6,8})
-}
-
 func TestFilter(t *testing.T) {
-	in := From([]interface{}{1,2,3,4})
+	in := From([]interface{}{1, 2, 3, 4})
 
 	out := Filter(in, func(i interface{}) bool {
 		num := i.(int)
-		return num % 2 == 0
+		return num%2 == 0
 	})
 
 	assertChanWithValues(t, out, []interface{}{2, 4})
 }
 
 func TestMerge(t *testing.T) {
-	c1 := From([]interface{}{1,2,9})
-	c2 := From([]interface{}{3,4,10})
-	c3 := From([]interface{}{5,7,11})
-	c4 := From([]interface{}{6,8,12})
+	c1 := From([]interface{}{1, 2, 9})
+	c2 := From([]interface{}{3, 4, 10})
+	c3 := From([]interface{}{5, 7, 11})
+	c4 := From([]interface{}{6, 8, 12})
 
 	ch := Merge(c1, c2, c3, c4)
 
 	array := To(ch)
-	if !isArrayEqual(array, []interface{}{1,2,3,4,5,6,7,8,9,10,11,12}, false) {
+	if !isArrayEqual(array, []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, false) {
 		t.Error("merge values not equal to original ones")
 	}
 }
 
 func TestBroadcast(t *testing.T) {
-	arr := []interface{}{1,2,3,4}
+	arr := []interface{}{1, 2, 3, 4}
 	ch := From(arr)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	sub1 := Broadcast(ch)
 	sub2 := Broadcast(ch)
@@ -138,7 +116,7 @@ func TestBroadcast(t *testing.T) {
 		defer wg.Done()
 
 		vals := To(sub1)
-		fmt.Println(vals)
+
 		if !isArrayEqual(vals, arr, true) {
 			t.Errorf("values not equal: %v, original: %v", vals, arr)
 		}
@@ -148,7 +126,6 @@ func TestBroadcast(t *testing.T) {
 		defer wg.Done()
 
 		vals := To(sub2)
-		fmt.Println(vals)
 
 		if !isArrayEqual(vals, arr, true) {
 			t.Errorf("values not equal: %v, original: %v", vals, arr)
@@ -159,7 +136,6 @@ func TestBroadcast(t *testing.T) {
 		defer wg.Done()
 
 		vals := To(sub3)
-		fmt.Println(vals)
 
 		if !isArrayEqual(vals, arr, true) {
 			t.Errorf("values not equal: %v, original: %v", vals, arr)

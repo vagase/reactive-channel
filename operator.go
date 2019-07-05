@@ -2,35 +2,14 @@ package reactive_channel
 
 import "sync"
 
-func From(in []interface{}) chan interface{} {
-	out := make(chan interface{}, len(in))
+type MapFunc func(interface{}) interface{}
 
-	for _, val := range in {
-		out <- val
-	}
-
-	close(out)
-
-	return out
-}
-
-func To(in chan interface{}) [] interface{} {
-	out := make([]interface{}, 0)
-	for val := range in {
-		out = append(out, val)
-	}
-
-	return out
-}
-
-type MapFunc func(interface{} ) interface{}
-
-func Map(in <- chan interface{}, mapFunc MapFunc) chan interface{} {
+func Map(in <-chan interface{}, mapFunc MapFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
 		for {
-			val, ok := <- in
+			val, ok := <-in
 			if ok {
 				out <- mapFunc(val)
 			} else {
@@ -45,12 +24,12 @@ func Map(in <- chan interface{}, mapFunc MapFunc) chan interface{} {
 
 type FilterFunc func(interface{}) bool
 
-func Filter(in <- chan interface{}, filterFunc FilterFunc) chan interface{} {
+func Filter(in <-chan interface{}, filterFunc FilterFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
 		for {
-			val, ok := <- in
+			val, ok := <-in
 			if ok {
 				if filterFunc(val) {
 					out <- val
@@ -68,7 +47,7 @@ func Filter(in <- chan interface{}, filterFunc FilterFunc) chan interface{} {
 /**
  * fan in
  */
-func Merge(chans ... chan interface{}) chan interface{} {
+func Merge(chans ...chan interface{}) chan interface{} {
 	out := make(chan interface{})
 
 	var wg sync.WaitGroup
@@ -79,7 +58,7 @@ func Merge(chans ... chan interface{}) chan interface{} {
 
 		go func() {
 			for {
-				val, ok := <- ch
+				val, ok := <-ch
 				if ok {
 					out <- val
 				} else {
@@ -104,13 +83,13 @@ var subscriptionMap = &sync.Map{}
  * fan out
  */
 func Broadcast(in chan interface{}) chan interface{} {
-	var subs [] chan interface{}
+	var subs []chan interface{}
 
 	val, ok := subscriptionMap.Load(in)
 	if !ok {
-		subs = make([] chan interface{}, 0)
+		subs = make([]chan interface{}, 0)
 	} else {
-		subs = val.([] chan interface{})
+		subs = val.([]chan interface{})
 	}
 
 	out := make(chan interface{})
@@ -122,10 +101,10 @@ func Broadcast(in chan interface{}) chan interface{} {
 	if !ok {
 		go func() {
 			for {
-				val, ok := <- in
+				val, ok := <-in
 
 				mapVal, _ := subscriptionMap.Load(in)
-				currentSubs := mapVal.([] chan interface{})
+				currentSubs := mapVal.([]chan interface{})
 
 				if ok {
 					// broadcast
