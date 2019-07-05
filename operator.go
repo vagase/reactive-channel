@@ -65,11 +65,14 @@ func Filter(in <- chan interface{}, filterFunc FilterFunc) chan interface{} {
 	return out
 }
 
+/**
+ * fan in
+ */
 func Merge(chans ... chan interface{}) chan interface{} {
 	out := make(chan interface{})
 
-	mutex := sync.Mutex{}
-	closedCount := 0
+	var wg sync.WaitGroup
+	wg.Add(len(chans))
 
 	for _, c := range chans {
 		ch := c
@@ -80,14 +83,63 @@ func Merge(chans ... chan interface{}) chan interface{} {
 				if ok {
 					out <- val
 				} else {
-					mutex.Lock()
-					closedCount++
+					wg.Done()
+					return
+				}
+			}
+		}()
+	}
 
-					if closedCount == len(chans) {
-						close(out)
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
+}
+
+var subscriptionMap = &sync.Map{}
+
+/**
+ * fan out
+ */
+func Broadcast(in chan interface{}) chan interface{} {
+	var subs [] chan interface{}
+
+	val, ok := subscriptionMap.Load(in)
+	if !ok {
+		subs = make([] chan interface{}, 0)
+	} else {
+		subs = val.([] chan interface{})
+	}
+
+	out := make(chan interface{})
+
+	subs = append(subs, out)
+	subscriptionMap.Store(in, subs)
+
+	// listen to the channel for the first time
+	if !ok {
+		go func() {
+			for {
+				val, ok := <- in
+
+				mapVal, _ := subscriptionMap.Load(in)
+				currentSubs := mapVal.([] chan interface{})
+
+				if ok {
+					// broadcast
+					for _, sub := range currentSubs {
+						sub <- val
+					}
+				} else {
+					// unsubscribe all
+					for _, sub := range currentSubs {
+						close(sub)
 					}
 
-					mutex.Unlock()
+					subscriptionMap.Delete(in)
+
 					return
 				}
 			}

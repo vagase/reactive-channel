@@ -1,7 +1,9 @@
 package reactive_channel
 
 import (
+	"fmt"
 	"sort"
+	"sync"
 	"testing"
 )
 
@@ -119,4 +121,50 @@ func TestMerge(t *testing.T) {
 	if !isArrayEqual(array, []interface{}{1,2,3,4,5,6,7,8,9,10,11,12}, false) {
 		t.Error("merge values not equal to original ones")
 	}
+}
+
+func TestBroadcast(t *testing.T) {
+	arr := []interface{}{1,2,3,4}
+	ch := From(arr)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	sub1 := Broadcast(ch)
+	sub2 := Broadcast(ch)
+	sub3 := Broadcast(ch)
+
+	go func() {
+		defer wg.Done()
+
+		vals := To(sub1)
+		fmt.Println(vals)
+		if !isArrayEqual(vals, arr, true) {
+			t.Errorf("values not equal: %v, original: %v", vals, arr)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		vals := To(sub2)
+		fmt.Println(vals)
+
+		if !isArrayEqual(vals, arr, true) {
+			t.Errorf("values not equal: %v, original: %v", vals, arr)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		vals := To(sub3)
+		fmt.Println(vals)
+
+		if !isArrayEqual(vals, arr, true) {
+			t.Errorf("values not equal: %v, original: %v", vals, arr)
+		}
+	}()
+
+	wg.Wait()
 }
