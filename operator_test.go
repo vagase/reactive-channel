@@ -57,12 +57,18 @@ func isArrayEqual(v1 SortInterfaceArray, v2 SortInterfaceArray, strict bool) boo
 	if !strict {
 		sort.Sort(v1)
 		sort.Sort(v2)
-
 	}
 
 	for index, v := range v1 {
-		if v != v2[index] {
-			return false
+		switch v.(type) {
+		case []interface{}:
+			if !isArrayEqual(v.([]interface{}), v2[index].([] interface{}), strict) {
+				return false
+			}
+		default:
+			if v != v2[index] {
+				return false
+			}
 		}
 	}
 
@@ -143,4 +149,12 @@ func TestBroadcast(t *testing.T) {
 	}()
 
 	wg.Wait()
+}
+
+func TestBuffer(t *testing.T) {
+	out1 := Buffer(From([]interface{}{1,2,3,4,5,6,7}), 2,3)
+	assertChanWithValues(t, out1, []interface{}{[]interface{}{1,2}, []interface{}{4,5}})
+
+	out2 := Buffer(From([]interface{}{1,2,3,4}), 2,0)
+	assertChanWithValues(t, out2, []interface{}{[]interface{}{1,2}, []interface{}{3, 4}})
 }

@@ -127,3 +127,37 @@ func Broadcast(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func Buffer(in chan interface{}, count int, skip int) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var buffer [] interface{}
+		counter := 0
+
+		for {
+			val, ok := <- in
+			if ok {
+				counter++
+				if skip > 0 && counter % skip == 0 {
+					continue
+				}
+
+				buffer = append(buffer, val)
+
+				if len(buffer) == count {
+					copyBuffer := make([]interface{}, count)
+					copy(copyBuffer, buffer)
+					out <- copyBuffer
+					buffer = buffer[:0]
+				}
+ 			} else {
+ 				return
+			}
+		}
+	}()
+
+	return out
+}
