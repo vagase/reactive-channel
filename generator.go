@@ -62,3 +62,39 @@ func Range(start int, size int) chan interface{} {
 
 	return out
 }
+
+/**
+ * @immediate:
+	- true: in(1->2->3), out (1->1->2->2->3->3)
+	- false: in(1->2->3), out (1->2->3->1->2->3)
+ */
+func Repeat(in chan interface{}, repeat int, immediate bool) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		if immediate {
+			for {
+				val, ok := <- in
+				if ok {
+					for index := 0; index < repeat; index ++ {
+						out <- val
+					}
+				} else {
+					return
+				}
+			}
+		} else {
+			vals := To(in)
+
+			for index := 0; index < repeat; index++ {
+				for _, val := range vals{
+					out <- val
+				}
+			}
+		}
+	}()
+
+	return out
+}

@@ -43,3 +43,11 @@ func TestRange(t *testing.T) {
 	array := [] interface{} {3, 4, 5, 6}
 	assertChanWithValues(t, ch, array)
 }
+
+func TestRepeat(t *testing.T) {
+	repeat1 := Repeat(From([]interface{}{1, 2, 3, 4}), 2, true)
+	assertChanWithValues(t, repeat1, []interface{}{1,1,2,2,3,3,4,4})
+
+	repeat2 := Repeat(From([]interface{}{1, 2, 3, 4}), 2, false)
+	assertChanWithValues(t, repeat2, []interface{}{1,2,3,4,1,2,3,4})
+}
