@@ -28,12 +28,18 @@ func TestMap(t *testing.T) {
 }
 
 func TestInterval(t *testing.T) {
-	ctx , _ := context.WithTimeout(context.Background(), time.Second * 1)
+	ctx , _ := context.WithTimeout(context.Background(), time.Millisecond * 55)
 
-	ch := Interval(ctx, time.Millisecond * 100)
+	ch := Interval(ctx, time.Millisecond * 10)
 
 	values := To(ch)
-	if len(values) != 10 {
+	if len(values) != 5 {
 		t.Fail()
 	}
+}
+
+func TestRange(t *testing.T) {
+	ch := Range(3, 4)
+	array := [] interface{} {3, 4, 5, 6}
+	assertChanWithValues(t, ch, array)
 }

@@ -50,3 +50,15 @@ func Interval(ctx context.Context, interval time.Duration) chan interface{} {
 
 	return out
 }
+
+func Range(start int, size int) chan interface{} {
+	out := make(chan interface{}, size)
+
+	for index := 0 ; index < size; index++ {
+		out <- start + index
+	}
+
+	close(out)
+
+	return out
+}
