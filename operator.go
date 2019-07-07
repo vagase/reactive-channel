@@ -384,3 +384,47 @@ func SkipLast(in chan interface{}, count int) chan interface{} {
 
 	return out
 }
+
+func Take(in chan interface{}, count int) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		index := 0
+		for val := range in {
+			index++
+
+			if index <= count {
+				out <- val
+			} else {
+				return
+			}
+		}
+	}()
+
+	return out
+}
+
+func TakeLast(in chan interface{}, count int) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var cache [] interface{}
+
+		for val := range in {
+			cache = append(cache, val)
+			if len(cache) > count {
+				cache = cache[1:]
+			}
+		}
+
+		for _, val := range cache {
+			out <- val
+		}
+	}()
+
+	return out
+}
