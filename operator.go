@@ -1,6 +1,9 @@
 package reactive_channel
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
 
 type MapFunc func(interface{}) interface{}
 
@@ -13,6 +16,28 @@ func Map(in <-chan interface{}, mapFunc MapFunc) chan interface{} {
 			if ok {
 				out <- mapFunc(val)
 			} else {
+				close(out)
+				return
+			}
+		}
+	}()
+
+	return out
+}
+
+type ReduceFunc func(interface{}, interface{}) interface {}
+func Reduce(in <- chan interface{}, reduceFunc ReduceFunc, initialVal interface{}) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		result := initialVal
+
+		for {
+			val, ok := <- in
+			if ok {
+				result = reduceFunc(result, val)
+			} else {
+				out <- result
 				close(out)
 				return
 			}
@@ -202,6 +227,34 @@ func GroupBy(in chan interface{}, groupByFunc GroupByFunc ) chan interface{} {
 				key := groupByFunc(val)
 				result[key] = append(result[key], val)
 			} else {
+				return
+			}
+		}
+	}()
+
+	return out
+}
+
+func Debounce(in chan interface{}, duration time.Duration) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		var lastTime *time.Time
+
+		for {
+			val, ok := <- in
+			if ok {
+				now := time.Now()
+
+				if lastTime != nil && now.Sub(*lastTime) < duration {
+					continue
+				}
+
+				lastTime = &now
+
+				out <- val
+			} else {
+				close(out)
 				return
 			}
 		}

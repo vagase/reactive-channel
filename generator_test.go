@@ -16,17 +16,6 @@ func TestFromTo(t *testing.T) {
 	}
 }
 
-func TestMap(t *testing.T) {
-	in := From([]interface{}{1, 2, 3, 4})
-
-	out := Map(in, func(i interface{}) interface{} {
-		num := i.(int)
-		return num * 2
-	})
-
-	assertChanWithValues(t, out, []interface{}{2, 4, 6, 8})
-}
-
 func TestInterval(t *testing.T) {
 	ctx , _ := context.WithTimeout(context.Background(), time.Millisecond * 55)
 

@@ -5,6 +5,7 @@ import (
 	"sort"
 	"sync"
 	"testing"
+	"time"
 )
 
 type SortInterfaceArray []interface{}
@@ -89,6 +90,25 @@ func assertEqual(t *testing.T, v1 interface{}, v2 interface{}) {
 	}
 }
 
+func TestMap(t *testing.T) {
+	in := From([]interface{}{1, 2, 3, 4})
+
+	out := Map(in, func(i interface{}) interface{} {
+		num := i.(int)
+		return num * 2
+	})
+
+	assertChanWithValues(t, out, []interface{}{2, 4, 6, 8})
+}
+
+func TestReduce(t *testing.T) {
+	in := From([] interface{} {1,2,3,4})
+	out := Reduce(in, func(i interface{}, i2 interface{}) interface{} {
+		return i.(int) + i2.(int)
+	}, 0)
+
+	assertChanWithValues(t, out, []interface{}{10})
+}
 
 func TestFilter(t *testing.T) {
 	in := From([]interface{}{1, 2, 3, 4})
@@ -197,4 +217,29 @@ func TestGroupBy(t *testing.T) {
 		"odd": {1, 3},
 		"even":  {2, 4},
 	})
+}
+
+func TestDebounce(t *testing.T) {
+	in := make(chan interface{})
+
+	go func() {
+		ticker := time.NewTicker(time.Millisecond *60)
+
+		index := 0
+		for {
+			if index > 4 {
+				ticker.Stop()
+				close(in)
+				return
+			}
+
+			<- ticker.C
+			in <- index
+			index++
+		}
+	}()
+
+	out := Debounce(in, time.Millisecond * 100)
+
+	assertChanWithValues(t, out, [] interface{} {0 ,2, 4})
 }
