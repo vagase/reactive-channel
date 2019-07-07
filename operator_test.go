@@ -250,3 +250,15 @@ func TestDistinct(t *testing.T) {
 
 	assertChanWithValues(t, out, []interface{}{1,2,3,5})
 }
+
+func TestElementAt(t *testing.T) {
+	out1 := ElementAt(From([]interface{}{0,1,2,3}), 2)
+	assertChanWithValues(t, out1, []interface{}{2})
+
+	out2 := ElementAt(From([]interface{}{0,1,2,3}), 6)
+	assertChanWithValues(t, out2, []interface{}{})
+
+
+	out3 := ElementAt(From([]interface{}{0,1,2,3}), -1)
+	assertChanWithValues(t, out3, []interface{}{})
+}

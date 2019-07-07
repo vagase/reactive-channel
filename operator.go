@@ -259,3 +259,27 @@ func Distinct(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func ElementAt(in chan interface{}, nth int) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		if nth < 0 {
+			return
+		}
+
+		index := 0
+		for val := range in {
+			if index == nth {
+				out <- val
+				return
+			}
+
+			index++
+		}
+	}()
+
+	return out
+}
