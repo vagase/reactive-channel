@@ -320,3 +320,36 @@ func IgnoreElements(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func Sample(in chan interface{}, interval time.Duration) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		ticker := time.NewTicker(interval)
+
+		defer func() {
+			close(out)
+			ticker.Stop()
+		}()
+
+		var valToEmit interface{}
+
+		for {
+			select {
+			case val, ok := <- in:
+				if ok {
+					valToEmit = val
+				} else {
+					return
+				}
+			case <- ticker.C:
+				if valToEmit != nil {
+					out <- valToEmit
+					valToEmit = nil
+				}
+			}
+		}
+	}()
+
+	return out
+}

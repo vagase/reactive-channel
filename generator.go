@@ -26,19 +26,26 @@ func To(in chan interface{}) []interface{} {
 	return out
 }
 
-func Interval(ctx context.Context, interval time.Duration) chan interface{} {
+func Interval(ctx context.Context, interval time.Duration, mapFunc MapFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
-		ticker := time.NewTicker(interval).C
+		ticker := time.NewTicker(interval)
 
-		defer close(out)
+		defer func() {
+			close(out)
+			ticker.Stop()
+		}()
 
 		for {
 			select {
-			case val, ok := <-ticker:
+			case val, ok := <- ticker.C:
 				if ok {
-					out <- val
+					var outVal interface{} = val
+					if mapFunc != nil {
+						outVal = mapFunc(val)
+					}
+					out <- outVal
 				} else {
 					return
 				}

@@ -1,6 +1,7 @@
 package reactive_channel
 
 import (
+	"context"
 	"reflect"
 	"sort"
 	"sync"
@@ -88,6 +89,11 @@ func assertEqual(t *testing.T, v1 interface{}, v2 interface{}) {
 	if !reflect.DeepEqual(v1, v2) {
 		t.Errorf("assertChanWithValues fail: %v, expected: %v", v1, v2)
 	}
+}
+
+func timeoutContext(timeout time.Duration) context.Context {
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	return ctx
 }
 
 func TestMap(t *testing.T) {
@@ -285,4 +291,18 @@ func TestIgnoreElements(t *testing.T) {
 
 	out2 := IgnoreElements(From([] interface{} {}))
 	assertChanWithValues(t, out2, []interface{}{})
+}
+
+func TestSample(t *testing.T) {
+	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond * 210)
+
+	index := 0
+	in := Interval(ctx, time.Millisecond * 30, func(i interface{}) interface{} {
+		index++
+		return index
+	})
+
+	out := Sample(in, time.Millisecond * 50)
+
+	assertChanWithValues(t, out, [] interface{} {1, 3, 4, 6})
 }

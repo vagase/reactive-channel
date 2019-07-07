@@ -1,7 +1,6 @@
 package reactive_channel
 
 import (
-	"context"
 	"testing"
 	"time"
 )
@@ -17,14 +16,20 @@ func TestFromTo(t *testing.T) {
 }
 
 func TestInterval(t *testing.T) {
-	ctx , _ := context.WithTimeout(context.Background(), time.Millisecond * 55)
+	out1 := Interval(timeoutContext(time.Millisecond * 55), time.Millisecond * 10, nil)
 
-	ch := Interval(ctx, time.Millisecond * 10)
-
-	values := To(ch)
+	values := To(out1)
 	if len(values) != 5 {
 		t.Fail()
 	}
+
+	index := 0
+	out2 := Interval(timeoutContext(time.Millisecond * 55), time.Millisecond * 10, func(i interface{}) interface{} {
+		index++
+		return index
+	})
+
+	assertChanWithValues(t, out2, [] interface{} {1, 2, 3, 4, 5})
 }
 
 func TestRange(t *testing.T) {
