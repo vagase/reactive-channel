@@ -11,14 +11,9 @@ func Map(in <-chan interface{}, mapFunc MapFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
-		for {
-			val, ok := <-in
-			if ok {
-				out <- mapFunc(val)
-			} else {
-				close(out)
-				return
-			}
+		defer close(out)
+		for val := range in {
+			out <- mapFunc(val)
 		}
 	}()
 
@@ -49,15 +44,10 @@ func Filter(in <-chan interface{}, filterFunc FilterFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
-		for {
-			val, ok := <-in
-			if ok {
-				if filterFunc(val) {
-					out <- val
-				}
-			} else {
-				close(out)
-				return
+		defer close(out)
+		for val := range in{
+			if filterFunc(val) {
+				out <- val
 			}
 		}
 	}()
@@ -78,15 +68,11 @@ func Merge(chans ...chan interface{}) chan interface{} {
 		ch := c
 
 		go func() {
-			for {
-				val, ok := <-ch
-				if ok {
-					out <- val
-				} else {
-					wg.Done()
-					return
-				}
+			for val := range ch{
+				out <- val
 			}
+
+			wg.Done()
 		}()
 	}
 
@@ -366,6 +352,33 @@ func Skip (in chan interface{}, count int) chan interface{} {
 				out <- val
 			}
 			index++
+		}
+	}()
+
+	return out
+}
+
+func SkipLast(in chan interface{}, count int) chan interface{} {
+	if count <= 0 {
+		return Map(in, func(i interface{}) interface{} {
+			return i
+		})
+	}
+
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var cache []interface {}
+
+		for val := range in {
+			if len(cache) == count {
+				out <- cache[0]
+				cache = append(cache[1:], val)
+			} else {
+				cache = append(cache, val)
+			}
 		}
 	}()
 
