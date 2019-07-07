@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"sort"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -357,4 +358,26 @@ func TestTakeLast(t *testing.T) {
 	in3 := From([] interface{} {1,2,3,4})
 	out3 := TakeLast(in3, 5)
 	assertChanWithValues(t, out3, [] interface{} {1, 2, 3, 4})
+}
+
+func TestCombineLatest(t *testing.T) {
+	var index int64 = 0
+	in1 := Interval(timeoutContext(time.Millisecond * 140), time.Millisecond * 30, func(i interface{}) interface{} {
+		index++
+		return index
+	})
+
+	index2 := -1
+	in2 := Interval(timeoutContext(time.Millisecond * 140), time.Millisecond * 50, func(i interface{}) interface{} {
+		index2 ++
+		return string(97 + index2 )
+	})
+
+	out := Map(CombineLatest(in1, in2), func(i interface{}) interface{} {
+		values := i.([]interface{})
+		return strconv.FormatInt(values[0].(int64), 10) + values[1].(string)
+	})
+	
+	assertChanWithValues(t, out, [] interface{} {"1a", "2a", "3a", "3b", "4b"})
+
 }

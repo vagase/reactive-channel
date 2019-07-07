@@ -1,6 +1,7 @@
 package reactive_channel
 
 import (
+	"reflect"
 	"sync"
 	"time"
 )
@@ -423,6 +424,44 @@ func TakeLast(in chan interface{}, count int) chan interface{} {
 
 		for _, val := range cache {
 			out <- val
+		}
+	}()
+
+	return out
+}
+
+func CombineLatest(chans... chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		cases := make([]reflect.SelectCase, len(chans))
+		for i, ch := range chans {
+			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
+		}
+
+		values := make([] interface{}, len(chans))
+
+		for {
+			chosen, value, ok := reflect.Select(cases)
+			if ok {
+				values[chosen] = value.Interface()
+
+				nilFound := false
+				for _, v := range values  {
+					if v == nil {
+						nilFound = true
+						break
+					}
+				}
+
+				if !nilFound {
+					out <- values
+				}
+			} else {
+				return
+			}
 		}
 	}()
 
