@@ -243,3 +243,10 @@ func TestDebounce(t *testing.T) {
 
 	assertChanWithValues(t, out, [] interface{} {0 ,2, 4})
 }
+
+func TestDistinct(t *testing.T) {
+	in := From([]interface{} {1,2,2,3,3,5})
+	out := Distinct(in)
+
+	assertChanWithValues(t, out, []interface{}{1,2,3,5})
+}

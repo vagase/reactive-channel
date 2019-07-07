@@ -32,16 +32,12 @@ func Reduce(in <- chan interface{}, reduceFunc ReduceFunc, initialVal interface{
 	go func() {
 		result := initialVal
 
-		for {
-			val, ok := <- in
-			if ok {
-				result = reduceFunc(result, val)
-			} else {
-				out <- result
-				close(out)
-				return
-			}
+		for val := range in {
+			result = reduceFunc(result, val)
 		}
+
+		out <- result
+		close(out)
 	}()
 
 	return out
@@ -162,24 +158,19 @@ func Buffer(in chan interface{}, count int, skip int) chan interface{} {
 		var buffer [] interface{}
 		counter := 0
 
-		for {
-			val, ok := <- in
-			if ok {
-				counter++
-				if skip > 0 && counter % skip == 0 {
-					continue
-				}
+		for val := range in {
+			counter++
+			if skip > 0 && counter % skip == 0 {
+				continue
+			}
 
-				buffer = append(buffer, val)
+			buffer = append(buffer, val)
 
-				if len(buffer) == count {
-					copyBuffer := make([]interface{}, count)
-					copy(copyBuffer, buffer)
-					out <- copyBuffer
-					buffer = buffer[:0]
-				}
- 			} else {
- 				return
+			if len(buffer) == count {
+				copyBuffer := make([]interface{}, count)
+				copy(copyBuffer, buffer)
+				out <- copyBuffer
+				buffer = buffer[:0]
 			}
 		}
 	}()
@@ -193,15 +184,10 @@ func FlatMap(in chan interface{}) chan interface {} {
 	go func() {
 		defer close(out)
 
-		for {
-			val, ok := <- in
-			if ok {
-				list := val.([] interface{})
-				for _, item := range list {
-					out <- item
-				}
-			} else {
-				return
+		for val := range in {
+			list := val.([] interface{})
+			for _, item := range list {
+				out <- item
 			}
 		}
 	}()
@@ -221,14 +207,9 @@ func GroupBy(in chan interface{}, groupByFunc GroupByFunc ) chan interface{} {
 			close(out)
 		}()
 
-		for {
-			val, ok := <- in
-			if ok {
-				key := groupByFunc(val)
-				result[key] = append(result[key], val)
-			} else {
-				return
-			}
+		for val := range in{
+			key := groupByFunc(val)
+			result[key] = append(result[key], val)
 		}
 	}()
 
@@ -239,24 +220,40 @@ func Debounce(in chan interface{}, duration time.Duration) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
+		defer close(out)
+
 		var lastTime *time.Time
 
-		for {
-			val, ok := <- in
-			if ok {
-				now := time.Now()
+		for val := range in{
+			now := time.Now()
 
-				if lastTime != nil && now.Sub(*lastTime) < duration {
-					continue
-				}
-
-				lastTime = &now
-
-				out <- val
-			} else {
-				close(out)
-				return
+			if lastTime != nil && now.Sub(*lastTime) < duration {
+				continue
 			}
+
+			lastTime = &now
+
+			out <- val
+		}
+	}()
+
+	return out
+}
+
+func Distinct(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var lastVal interface{}
+		for val := range in {
+			if val == lastVal {
+				continue
+			}
+
+			lastVal = val
+			out <- val
 		}
 	}()
 
