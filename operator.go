@@ -306,3 +306,17 @@ func Last(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func IgnoreElements(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for range in {
+			// do nothing
+		}
+	}()
+
+	return out
+}

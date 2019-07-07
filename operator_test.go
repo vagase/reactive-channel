@@ -278,3 +278,11 @@ func TestLast(t *testing.T) {
 	out2 := Last(From([] interface{}{}))
 	assertChanWithValues(t, out2, []interface{}{})
 }
+
+func TestIgnoreElements(t *testing.T) {
+	out1 := IgnoreElements(From([] interface{} {1,2,3}))
+	assertChanWithValues(t, out1, []interface{}{})
+
+	out2 := IgnoreElements(From([] interface{} {}))
+	assertChanWithValues(t, out2, []interface{}{})
+}
