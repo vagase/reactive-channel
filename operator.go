@@ -353,3 +353,21 @@ func Sample(in chan interface{}, interval time.Duration) chan interface{} {
 
 	return out
 }
+
+func Skip (in chan interface{}, count int) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		index := 0
+		for val := range in {
+			if index >= count {
+				out <- val
+			}
+			index++
+		}
+	}()
+
+	return out
+}

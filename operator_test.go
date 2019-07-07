@@ -306,3 +306,17 @@ func TestSample(t *testing.T) {
 
 	assertChanWithValues(t, out, [] interface{} {1, 3, 4, 6})
 }
+
+func TestSkip(t *testing.T) {
+	in := From([] interface{} {1,2,3,4})
+	out := Skip(in, 2)
+	assertChanWithValues(t, out, [] interface{} {3, 4})
+
+	in2 := From([] interface{} {1,2,3,4})
+	out2 := Skip(in2, 5)
+	assertChanWithValues(t, out2, [] interface{} {})
+
+	in3 := From([] interface{} {1,2,3,4})
+	out3 := Skip(in3, 0)
+	assertChanWithValues(t, out3, [] interface{} {1,2, 3, 4})
+}
