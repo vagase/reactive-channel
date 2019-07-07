@@ -283,3 +283,26 @@ func ElementAt(in chan interface{}, nth int) chan interface{} {
 
 	return out
 }
+
+func First(in chan interface{}) chan interface{} {
+	return ElementAt(in, 0)
+}
+
+func Last(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var lastVal interface{}
+		for val:= range in {
+			lastVal = val
+		}
+
+		if lastVal != nil {
+			out <- lastVal
+		}
+	}()
+
+	return out
+}

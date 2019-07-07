@@ -262,3 +262,19 @@ func TestElementAt(t *testing.T) {
 	out3 := ElementAt(From([]interface{}{0,1,2,3}), -1)
 	assertChanWithValues(t, out3, []interface{}{})
 }
+
+func TestFirst(t *testing.T) {
+	out1 := First(From([]interface{}{0,1,2,3}), )
+	assertChanWithValues(t, out1, []interface{}{0})
+
+	out2 := First(From([] interface{} {}))
+	assertChanWithValues(t, out2, []interface{}{})
+}
+
+func TestLast(t *testing.T) {
+	out1 := Last(From([] interface{} {1,2,3}))
+	assertChanWithValues(t, out1, []interface{}{3})
+
+	out2 := Last(From([] interface{}{}))
+	assertChanWithValues(t, out2, []interface{}{})
+}
