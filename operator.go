@@ -1005,3 +1005,59 @@ func Count(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func Min(in chan interface{}) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var min interface {}
+
+		for val := range in {
+			if min == nil {
+				min = val
+			} else {
+				less := false
+				switch val.(type) {
+				case string:
+					less = val.(string) < min.(string)
+				case int:
+					less = val.(int) < min.(int)
+				case int8:
+					less = val.(int8) < min.(int8)
+				case int16:
+					less = val.(int16) < min.(int16)
+				case int32:
+					less = val.(int32) < min.(int32)
+				case int64:
+					less = val.(int64) < min.(int64)
+				case uint:
+					less = val.(uint) < min.(uint)
+				case uint8:
+					less = val.(uint8) < min.(uint8)
+				case uint16:
+					less = val.(uint16) < min.(uint16)
+				case uint32:
+					less = val.(uint32) < min.(uint32)
+				case uint64:
+					less = val.(uint64) < min.(uint64)
+				case float32:
+					less = val.(float32) < min.(float32)
+				case float64:
+					less = val.(float64) < min.(float64)
+				}
+
+				if less {
+					min = val
+				}
+			}
+		}
+
+		if min != nil {
+			out <- min
+		}
+	} ()
+
+	return out
+}
