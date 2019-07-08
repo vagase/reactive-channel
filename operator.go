@@ -1061,3 +1061,59 @@ func Min(in chan interface{}) chan interface {} {
 
 	return out
 }
+
+func Max(in chan interface{}) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var max interface {}
+
+		for val := range in {
+			if max == nil {
+				max = val
+			} else {
+				large := false
+				switch val.(type) {
+				case string:
+					large = val.(string) > max.(string)
+				case int:
+					large = val.(int) > max.(int)
+				case int8:
+					large = val.(int8) > max.(int8)
+				case int16:
+					large = val.(int16) > max.(int16)
+				case int32:
+					large = val.(int32) > max.(int32)
+				case int64:
+					large = val.(int64) > max.(int64)
+				case uint:
+					large = val.(uint) > max.(uint)
+				case uint8:
+					large = val.(uint8) > max.(uint8)
+				case uint16:
+					large = val.(uint16) > max.(uint16)
+				case uint32:
+					large = val.(uint32) > max.(uint32)
+				case uint64:
+					large = val.(uint64) > max.(uint64)
+				case float32:
+					large = val.(float32) > max.(float32)
+				case float64:
+					large = val.(float64) > max.(float64)
+				}
+
+				if large {
+					max = val
+				}
+			}
+		}
+
+		if max != nil {
+			out <- max
+		}
+	} ()
+
+	return out
+}

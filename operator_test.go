@@ -671,3 +671,21 @@ func TestMin(t *testing.T) {
 	out4 := Min(in4)
 	assertChanWithValues(t, out4, [] interface{} {"a"})
 }
+
+func TestMax(t *testing.T) {
+	in1 := From([] interface{} {})
+	out1 := Max(in1)
+	assertChanWithValues(t, out1, [] interface{} {})
+
+	in2 := From([] interface{} {1, -2, 3})
+	out2 := Max(in2)
+	assertChanWithValues(t, out2, [] interface{} {3})
+
+	in3 := From([] interface{} {1.0, -2.0, 3.0})
+	out3 := Max(in3)
+	assertChanWithValues(t, out3, [] interface{} {3.0})
+
+	in4 := From([] interface{} {"a", "ab", "b"})
+	out4 := Max(in4)
+	assertChanWithValues(t, out4, [] interface{} {"b"})
+}
