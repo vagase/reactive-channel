@@ -780,3 +780,24 @@ func Amb(in ...chan interface{}) chan interface{} {
 
 	return out
 }
+
+func DefaultIfEmpty(in chan interface{}, defaultVal interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		empty := true
+
+		for val := range in {
+			out <- val
+			empty = false
+		}
+
+		if empty {
+			out <- defaultVal
+		}
+	}()
+
+	return out
+}

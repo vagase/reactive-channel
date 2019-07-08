@@ -518,3 +518,13 @@ func TestAmb(t *testing.T) {
 
 	assertChanWithValues(t, out, []interface{}{10, 11, 12})
 }
+
+func TestDefaultIfEmpty(t *testing.T) {
+	in1 := From([]interface{}{})
+	out1 := DefaultIfEmpty(in1, 1)
+	assertChanWithValues(t, out1, [] interface{} {1})
+
+	in2 := From([]interface{}{2})
+	out2 := DefaultIfEmpty(in2, 1)
+	assertChanWithValues(t, out2, [] interface{} {2})
+}
