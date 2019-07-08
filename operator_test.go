@@ -550,3 +550,16 @@ func TestSequenceEqual(t *testing.T) {
 	out4 := SequenceEqual(in41, in42)
 	assertChanWithValues(t, out4, [] interface{}{false})
 }
+
+func TestSkipUntil(t *testing.T) {
+	skipUntil1 := IntervalRange(0, 1, time.Millisecond * 35,  0)
+	in1 := IntervalRange(0, 5, time.Millisecond * 10, 0)
+	out1 := SkipUntil(in1, skipUntil1)
+
+	assertChanWithValues(t, out1, []interface{} {3, 4})
+
+	skipUntil2 := IntervalRange(0, 1, time.Millisecond * 100,  0)
+	in2 := IntervalRange(0, 5, time.Millisecond * 10, 0)
+	out2 := SkipUntil(in2, skipUntil2)
+	assertChanWithValues(t, out2, []interface{} {})
+}

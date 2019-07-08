@@ -871,3 +871,30 @@ func SequenceEqual(ins ...chan interface{}) chan interface{} {
 
 	return out
 }
+
+func SkipUntil(in chan interface{}, untilChan chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		accept := false
+
+		for {
+			select {
+			case val, ok := <- in:
+				if ok {
+					if accept {
+						out <- val
+					}
+				} else {
+					return
+				}
+			case <- untilChan:
+				accept = true
+			}
+		}
+	}()
+
+	return out
+}
