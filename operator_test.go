@@ -689,3 +689,16 @@ func TestMax(t *testing.T) {
 	out4 := Max(in4)
 	assertChanWithValues(t, out4, [] interface{} {"b"})
 }
+
+func TestConcat(t *testing.T) {
+	in11 := From([] interface{}{1, 2})
+	in12 := From([] interface{}{"a", "b"})
+	out1 := Concat(in11, in12)
+
+	assertChanWithValues(t, out1, [] interface{}{1, 2, "a", "b"})
+
+	in21 := From([] interface{}{})
+	in22 := From([] interface{}{"b"})
+	out2 := Concat(in21, in22)
+	assertChanWithValues(t, out2, [] interface{}{"b"})
+}

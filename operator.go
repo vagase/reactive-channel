@@ -1117,3 +1117,19 @@ func Max(in chan interface{}) chan interface {} {
 
 	return out
 }
+
+func Concat(chans... chan interface{}) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for _, ch := range chans {
+			for val := range ch {
+				out <- val
+			}
+		}
+	}()
+
+	return out
+}
