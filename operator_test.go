@@ -460,3 +460,11 @@ func TestDelay(t *testing.T) {
 
 	assertEqual(t, length, 3)
 }
+
+func TestTimeInterval(t *testing.T) {
+	in := Interval(timeoutContext(time.Millisecond * 100), time.Millisecond * 30, nil)
+	out := TimeInterval(in)
+	vals := To(out)
+
+	assertEqual(t, len(vals), 3)
+}

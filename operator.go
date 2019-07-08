@@ -615,3 +615,35 @@ func Delay(in chan interface{}, delay time.Duration) chan interface{} {
 
 	return out
 }
+
+
+type TimeIntervalItem struct {
+	value interface{}
+	interval time.Duration
+}
+
+func TimeInterval(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		var lastTime *time.Time
+
+		for val := range in {
+			var interval time.Duration = 0
+
+			now := time.Now()
+
+			if lastTime != nil {
+				interval = now.Sub(*lastTime)
+			}
+
+			lastTime = &now
+
+			out <- TimeIntervalItem{val, interval}
+		}
+	}()
+
+	return out
+}
