@@ -942,3 +942,21 @@ func TakeUntil(in chan interface{}, untilChan chan interface{}) chan interface{}
 
 	return out
 }
+
+func TakeWhile(in chan interface{}, match MatchFunc) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for val := range in {
+			if !match(val) {
+				return
+			}
+
+			out <- val
+		}
+	}()
+
+	return out
+}

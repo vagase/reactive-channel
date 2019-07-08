@@ -595,3 +595,23 @@ func TestTakeUntil(t *testing.T) {
 	out2 := TakeUntil(in2, takeUntil2)
 	assertChanWithValues(t, out2, []interface{} {0, 1, 2, 3, 4})
 }
+
+func TestTakeWhile(t *testing.T) {
+	in1 := From([] interface{} {1, 2, 3, 4})
+	out1 := TakeWhile(in1, func(i interface{}) bool {
+		return i.(int) <= 2
+	})
+	assertChanWithValues(t, out1, [] interface{} {1, 2})
+
+	in2 := From([] interface{} {1, 2, 3, 4})
+	out2 := TakeWhile(in2, func(i interface{}) bool {
+		return i.(int) <= 10
+	})
+	assertChanWithValues(t, out2, [] interface{} {1, 2, 3, 4,})
+
+	in3 := From([] interface{} {})
+	out3 := TakeWhile(in3, func(i interface{}) bool {
+		return i.(int) <= 10
+	})
+	assertChanWithValues(t, out3, [] interface{} {})
+}
