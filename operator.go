@@ -919,3 +919,26 @@ func SkipWhile(in chan interface{}, match MatchFunc) chan interface{} {
 
 	return out
 }
+
+func TakeUntil(in chan interface{}, untilChan chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for {
+			select {
+			case val, ok := <- in:
+				if ok {
+					out <- val
+				} else {
+					return
+				}
+			case <- untilChan:
+				return
+			}
+		}
+	}()
+
+	return out
+}

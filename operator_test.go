@@ -583,3 +583,15 @@ func TestSkipWhile(t *testing.T) {
 	})
 	assertChanWithValues(t, out3, [] interface{} {})
 }
+
+func TestTakeUntil(t *testing.T) {
+	takeUntil1 := IntervalRange(0, 1, time.Millisecond * 35,  0)
+	in1 := IntervalRange(0, 5, time.Millisecond * 10, 0)
+	out1 := TakeUntil(in1, takeUntil1)
+	assertChanWithValues(t, out1, []interface{} {0, 1, 2})
+
+	takeUntil2 := IntervalRange(0, 1, time.Millisecond * 100,  0)
+	in2 := IntervalRange(0, 5, time.Millisecond * 10, 0)
+	out2 := TakeUntil(in2, takeUntil2)
+	assertChanWithValues(t, out2, []interface{} {0, 1, 2, 3, 4})
+}
