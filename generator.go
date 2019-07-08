@@ -128,3 +128,7 @@ func Empty() chan interface {} {
 	close(out)
 	return out
 }
+
+func Throw(err error) chan interface{} {
+	return Just(err)
+}
