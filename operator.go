@@ -966,3 +966,24 @@ func Sum (in chan interface{}) chan interface{} {
 		return i.(int) + i2.(int)
 	}, 0)
 }
+
+func Average(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		count := 0
+		sum, _ := <- Reduce(in, func(i interface{}, i2 interface{}) interface{} {
+			count++
+			return i.(int) + i2.(int)
+		}, 0)
+
+		if count > 0 {
+			avg := sum.(int) / count
+			out <- avg
+		}
+	}()
+
+	return out
+}
