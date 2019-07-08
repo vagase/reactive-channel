@@ -2,6 +2,7 @@ package reactive_channel
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -528,6 +529,65 @@ func Switch(in chan interface{}) chan interface{} {
 
 		close(out)
 	}()
+
+	return out
+}
+
+
+func Zip(chans... chan interface{} ) chan interface{} {
+	out := make (chan interface{})
+
+	go func() {
+		defer close(out)
+
+		valueCache := make([][]interface{}, len(chans))
+		tryEmit := func () error {
+			emit := true
+			for _, arr := range valueCache {
+				if len(arr) == 0{
+					emit = false
+					break
+				}
+			}
+
+			if !emit {
+				return nil
+			}
+
+			emitVals := make([]interface{}, len(chans))
+			for index, arr := range valueCache {
+				if arr[0] == nil {
+					return fmt.Errorf("")
+				}
+
+				emitVals[index] = arr[0]
+				valueCache[index] = arr[1:]
+			}
+
+			out <- emitVals
+
+			return nil
+		}
+
+		cases := make([]reflect.SelectCase, len(chans))
+		for i, ch := range chans {
+			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
+		}
+
+		for {
+			index, value, ok := reflect.Select(cases)
+			if ok {
+				valueCache[index] = append(valueCache[index], value.Interface())
+			} else {
+				valueCache[index] = append(valueCache[index], nil)
+			}
+
+			if err := tryEmit(); err != nil {
+				return
+			}
+		}
+	}()
+
 
 	return out
 }

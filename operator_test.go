@@ -412,3 +412,33 @@ func TestSwitch(t *testing.T) {
 
 	assertChanWithValues(t, out, []interface{}{"11", "12", "21", "22", "23"})
 }
+
+func TestZip(t *testing.T) {
+	in11 := Range(0, 3)
+	in12 := Range(5, 10)
+	out1 := Map(Zip(in11, in12), func(i interface{}) interface{} {
+		arr := i.([]interface{})
+		return strconv.Itoa(arr[0].(int)) + strconv.Itoa(arr[1].(int))
+	})
+
+	assertChanWithValues(t, out1, [] interface{} {"05", "16", "27"})
+
+	in21 := Range(0, 0)
+	in22 := Range(5, 10)
+	out2 := Map(Zip(in21, in22), func(i interface{}) interface{} {
+		arr := i.([]interface{})
+		return strconv.Itoa(arr[0].(int)) + strconv.Itoa(arr[1].(int))
+	})
+
+	assertChanWithValues(t, out2, [] interface{} {})
+
+	in31 := Range(0, 3)
+	in32 := Range(5, 10)
+	in33 := Range(7, 2)
+	out3 := Map(Zip(in31, in32, in33), func(i interface{}) interface{} {
+		arr := i.([]interface{})
+		return strconv.Itoa(arr[0].(int)) + strconv.Itoa(arr[1].(int)) + strconv.Itoa(arr[2].(int))
+	})
+
+	assertChanWithValues(t, out3, [] interface{} {"057", "168"})
+}
