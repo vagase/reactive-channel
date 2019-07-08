@@ -528,3 +528,25 @@ func TestDefaultIfEmpty(t *testing.T) {
 	out2 := DefaultIfEmpty(in2, 1)
 	assertChanWithValues(t, out2, [] interface{} {2})
 }
+
+func TestSequenceEqual(t *testing.T) {
+	in11 := From([] interface{}{1,2,3,4})
+	in12 := IntervalRange(1, 4, time.Millisecond*10, 0)
+	out1 := SequenceEqual(in11, in12)
+	assertChanWithValues(t, out1, [] interface{}{true})
+
+	in21 := From([] interface{}{})
+	in22 := From([] interface{}{})
+	out2 := SequenceEqual(in21, in22)
+	assertChanWithValues(t, out2, [] interface{}{true})
+
+	in31 := From([] interface{}{1,2,3,4})
+	in32 := From([] interface{}{1,2})
+	out3 := SequenceEqual(in31, in32)
+	assertChanWithValues(t, out3, [] interface{}{false})
+
+	in41 := From([] interface{}{1,2,3,4})
+	in42 := From([] interface{}{})
+	out4 := SequenceEqual(in41, in42)
+	assertChanWithValues(t, out4, [] interface{}{false})
+}

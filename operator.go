@@ -2,7 +2,7 @@ package reactive_channel
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"reflect"
 	"sync"
 	"time"
@@ -556,7 +556,7 @@ func Zip(chans ...chan interface{}) chan interface{} {
 			emitVals := make([]interface{}, len(chans))
 			for index, arr := range valueCache {
 				if arr[0] == nil {
-					return fmt.Errorf("")
+					return errors.New("end of chan")
 				}
 
 				emitVals[index] = arr[0]
@@ -797,6 +797,76 @@ func DefaultIfEmpty(in chan interface{}, defaultVal interface{}) chan interface{
 		if empty {
 			out <- defaultVal
 		}
+	}()
+
+	return out
+}
+
+func SequenceEqual(ins ...chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		chans := ins
+
+		valueCaches := make([][]interface{}, len(chans))
+		isNotEqual := func() bool {
+			var lastVal interface{}
+
+			allEqual := true
+
+			for _, arr := range valueCaches {
+				if len(arr) > 0 {
+					if lastVal == nil {
+						lastVal = arr[0]
+					} else if lastVal != arr[0] {
+						return true
+					}
+				} else {
+					allEqual = false
+				}
+			}
+
+			if allEqual {
+				for index, arr := range valueCaches {
+					valueCaches[index] = arr[1:]
+				}
+			}
+
+			return false
+		}
+
+		var wg sync.WaitGroup
+		wg.Add(len(chans))
+
+		for i, c := range chans {
+			index := i
+			ch := c
+
+			go func() {
+				defer wg.Done()
+
+				for val := range ch {
+					valueCaches[index] = append(valueCaches[index], val)
+					if isNotEqual() {
+						out <- false
+						return
+					}
+				}
+			}()
+		}
+
+		wg.Wait()
+
+		for _, arr := range valueCaches {
+			if len(arr) > 0 {
+				out <- false
+				return
+			}
+		}
+
+		out <- true
 	}()
 
 	return out
