@@ -1133,3 +1133,20 @@ func Concat(chans... chan interface{}) chan interface {} {
 
 	return out
 }
+
+func Empty(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for range in {
+			out <- false
+			return
+		}
+
+		out <- true
+	}()
+
+	return out
+}
