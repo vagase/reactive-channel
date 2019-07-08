@@ -1150,3 +1150,37 @@ func IsEmpty(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func WindowWithCount(in chan interface{}, count int) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		c := 0
+		var cache []interface{}
+
+		for val := range in {
+			c++
+			if c == count {
+				values := append(cache, val)
+				out <- From(values)
+
+				c = 0
+				cache = nil
+			} else {
+				cache = append(cache, val)
+			}
+		}
+
+		if len(cache) > 0{
+			out <- From(cache)
+		}
+	}()
+
+	return out
+}
+//
+//func WindowWithTime(in chan interface{}) chan interface{} {
+//
+//}

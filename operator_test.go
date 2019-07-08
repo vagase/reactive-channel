@@ -711,3 +711,16 @@ func TestIsEmpty(t *testing.T) {
 	out2 := IsEmpty(in2)
 	assertChanWithValues(t, out2, [] interface{} {false})
 }
+
+func TestWindowWithCount(t *testing.T) {
+	in1 := From([] interface{} {1, 2, 3})
+	out1 := WindowWithCount(in1, 2)
+	values1 := Values(out1)
+	assertChanWithValues(t, values1[0].(chan interface{}),  [] interface{} {1, 2})
+	assertChanWithValues(t, values1[1].(chan interface{}),  [] interface{} {3})
+
+	in2 := From([] interface{} {1})
+	out2 := WindowWithCount(in2, 2)
+	values2 := Values(out2)
+	assertChanWithValues(t, values2[0].(chan interface{}),  [] interface{} {1})
+}
