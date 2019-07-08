@@ -512,3 +512,19 @@ func TestAll(t *testing.T) {
 
 	assertChanWithValues(t, out2, []interface{}{true})
 }
+
+func TestContains(t *testing.T) {
+	in1 := From([] interface{}{1,2,3})
+	out1 := Contains(in1, func(i interface{}) bool {
+		return i.(int) % 2 == 0
+	})
+
+	assertChanWithValues(t, out1, []interface{}{true})
+
+	in2 := From([] interface{}{2,4})
+	out2 := Contains(in2, func(i interface{}) bool {
+		return i.(int) % 2 != 0
+	})
+
+	assertChanWithValues(t, out2, []interface{}{false})
+}
