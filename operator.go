@@ -693,3 +693,24 @@ func Timestamp(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+type MatchFunc func(interface{}) bool
+
+func All(in chan interface{}, match MatchFunc) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for val := range in {
+			if !match(val) {
+				out <- false
+				return
+			}
+		}
+
+		out <- true
+	}()
+
+	return out
+}

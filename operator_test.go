@@ -496,3 +496,19 @@ func TestTimestamp(t *testing.T) {
 	diff := v2.timestamp.Sub(v1.timestamp) / time.Millisecond
 	assert.T(t, diff <= 25 && diff >= 15)
 }
+
+func TestAll(t *testing.T) {
+	in1 := From([] interface{}{1,2,3})
+	out1 := All(in1, func(i interface{}) bool {
+		return i.(int) % 2 == 0
+	})
+
+	assertChanWithValues(t, out1, []interface{}{false})
+
+	in2 := From([] interface{}{2,4})
+	out2 := All(in2, func(i interface{}) bool {
+		return i.(int) % 2 == 0
+	})
+
+	assertChanWithValues(t, out2, []interface{}{true})
+}
