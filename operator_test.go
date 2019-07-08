@@ -615,3 +615,17 @@ func TestTakeWhile(t *testing.T) {
 	})
 	assertChanWithValues(t, out3, [] interface{} {})
 }
+
+func TestSum(t *testing.T) {
+	in1 := From([] interface{} {})
+	out1 := Sum(in1)
+	assertChanWithValues(t, out1, [] interface{} {0})
+
+	in2 := From([] interface{} {1})
+	out2 := Sum(in2)
+	assertChanWithValues(t, out2, [] interface{} {1})
+
+	in3 := From([] interface{} {1, 2, 3})
+	out3 := Sum(in3)
+	assertChanWithValues(t, out3, [] interface{} {6})
+}

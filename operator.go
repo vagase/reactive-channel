@@ -960,3 +960,9 @@ func TakeWhile(in chan interface{}, match MatchFunc) chan interface{} {
 
 	return out
 }
+
+func Sum (in chan interface{}) chan interface{} {
+	return Reduce(in, func(i interface{}, i2 interface{}) interface{} {
+		return i.(int) + i2.(int)
+	}, 0)
+}
