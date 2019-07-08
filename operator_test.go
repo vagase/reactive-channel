@@ -379,5 +379,18 @@ func TestCombineLatest(t *testing.T) {
 	})
 	
 	assertChanWithValues(t, out, [] interface{} {"1a", "2a", "3a", "3b", "4b"})
+}
 
+func TestStartWith(t *testing.T) {
+	in1 := From([]interface{} {3, 4})
+	out1 := StartWith(in1, 1, 2)
+	assertChanWithValues(t, out1, [] interface{}{1,2,3,4})
+
+	in2 := From([]interface{} {3, 4})
+	out2 := StartWith(in2)
+	assertChanWithValues(t, out2, [] interface{}{3,4})
+
+	in3 := From([]interface{} {})
+	out3 := StartWith(in3, 1, 2)
+	assertChanWithValues(t, out3, [] interface{}{1,2})
 }

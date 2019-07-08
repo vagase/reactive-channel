@@ -467,3 +467,21 @@ func CombineLatest(chans... chan interface{}) chan interface{} {
 
 	return out
 }
+
+func StartWith(in chan interface{}, vals... interface{}) chan interface{} {
+	out := make(chan interface{}, len(vals) + 1)
+
+	for _, val := range vals {
+		out <- val
+	}
+
+	go func() {
+		defer close(out)
+
+		for val := range in {
+			out <- val
+		}
+	}()
+
+	return out
+}
