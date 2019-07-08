@@ -987,3 +987,21 @@ func Average(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func Count(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		count := 0
+
+		for _ = range in {
+			count ++
+		}
+
+		out <- count
+	} ()
+
+	return out
+}

@@ -643,3 +643,13 @@ func TestAverage(t *testing.T) {
 	out3 := Average(in3)
 	assertChanWithValues(t, out3, [] interface{} {2})
 }
+
+func TestCount(t *testing.T) {
+	in1 := From([] interface{} {})
+	out1 := Count(in1)
+	assertChanWithValues(t, out1, [] interface{} {0})
+
+	in2 := From([] interface{} {1, 2})
+	out2 := Count(in2)
+	assertChanWithValues(t, out2, [] interface{} {2})
+}
