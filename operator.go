@@ -647,3 +647,32 @@ func TimeInterval(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+type TimeoutError struct {
+}
+
+func (timeoutError TimeoutError)Error() string {
+	return "timeout error"
+}
+
+func Timeout(in chan interface{}, timeout time.Duration) chan interface {} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		select {
+			case val, ok := <- in:
+				if ok {
+					out <- val
+				} else {
+					return
+				}
+			case <- time.After(timeout):
+				out <- TimeoutError{}
+				return
+		}
+	}()
+
+	return out
+}

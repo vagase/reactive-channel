@@ -468,3 +468,17 @@ func TestTimeInterval(t *testing.T) {
 
 	assertEqual(t, len(vals), 3)
 }
+
+func TestTimeout(t *testing.T) {
+	in := Interval(timeoutContext(time.Millisecond * 100), time.Millisecond * 30, nil)
+
+	out := Timeout(in, time.Millisecond * 20)
+
+	error, _ :=  <- out
+
+	switch error.(type) {
+	case TimeoutError:
+	default:
+		t.Errorf("got: %v, while expecting TimeoutError", error)
+	}
+}
