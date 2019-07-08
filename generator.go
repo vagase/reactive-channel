@@ -118,3 +118,13 @@ func Repeat(in chan interface{}, repeat int, immediate bool) chan interface{} {
 
 	return out
 }
+
+func Just(val interface{}) chan interface{} {
+	return From([] interface{} {val})
+}
+
+func Empty() chan interface {} {
+	out := make(chan interface{})
+	close(out)
+	return out
+}

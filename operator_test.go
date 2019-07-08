@@ -702,17 +702,12 @@ func TestConcat(t *testing.T) {
 	assertChanWithValues(t, out2, [] interface{}{"b"})
 }
 
-func TestEmpty(t *testing.T) {
+func TestIsEmpty(t *testing.T) {
 	in1 := From([] interface{} {})
-	out1 := Empty(in1)
+	out1 := IsEmpty(in1)
 	assertChanWithValues(t, out1, [] interface{} {true})
 
 	in2 := From([] interface{} {1})
-	out2 := Empty(in2)
+	out2 := IsEmpty(in2)
 	assertChanWithValues(t, out2, [] interface{} {false})
-}
-
-func TestJust(t *testing.T) {
-	in := Just(1)
-	assertChanWithValues(t, in, []interface{} {1})
 }

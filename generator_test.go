@@ -45,3 +45,13 @@ func TestRepeat(t *testing.T) {
 	repeat2 := Repeat(From([]interface{}{1, 2, 3, 4}), 2, false)
 	assertChanWithValues(t, repeat2, []interface{}{1, 2, 3, 4, 1, 2, 3, 4})
 }
+
+func TestJust(t *testing.T) {
+	in := Just(1)
+	assertChanWithValues(t, in, []interface{} {1})
+}
+
+func TestEmpty(t *testing.T) {
+	in := Empty()
+	assertChanWithValues(t, in, []interface{} {})
+}

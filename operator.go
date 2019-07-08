@@ -1134,7 +1134,7 @@ func Concat(chans... chan interface{}) chan interface {} {
 	return out
 }
 
-func Empty(in chan interface{}) chan interface{} {
+func IsEmpty(in chan interface{}) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
@@ -1149,8 +1149,4 @@ func Empty(in chan interface{}) chan interface{} {
 	}()
 
 	return out
-}
-
-func Just(val interface{}) chan interface{} {
-	return From([] interface{} {val})
 }
