@@ -132,3 +132,15 @@ func Empty() chan interface {} {
 func Throw(err error) chan interface{} {
 	return Just(err)
 }
+
+func Timer(duration time.Duration) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		t := <- time.After(duration)
+		out <- t
+		close(out)
+	}()
+
+	return out
+}

@@ -1,6 +1,7 @@
 package reactive_channel
 
 import (
+	"github.com/bmizerany/assert"
 	"testing"
 	"time"
 )
@@ -54,4 +55,13 @@ func TestJust(t *testing.T) {
 func TestEmpty(t *testing.T) {
 	in := Empty()
 	assertChanWithValues(t, in, []interface{} {})
+}
+
+func TestTimer(t *testing.T) {
+	start := time.Now()
+	<- Timer(time.Millisecond * 100)
+	end := time.Now()
+
+	diff := end.Sub(start)
+	assert.T(t, diff <= time.Millisecond  * 110 && diff >= time.Millisecond  * 90)
 }
