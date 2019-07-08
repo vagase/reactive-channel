@@ -295,13 +295,7 @@ func TestIgnoreElements(t *testing.T) {
 }
 
 func TestSample(t *testing.T) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*210)
-
-	index := 0
-	in := Interval(ctx, time.Millisecond*30, func(i interface{}) interface{} {
-		index++
-		return index
-	})
+	in := IntervalRange(1, 7, time.Millisecond*30, 0)
 
 	out := Sample(in, time.Millisecond*50)
 
@@ -361,21 +355,14 @@ func TestTakeLast(t *testing.T) {
 }
 
 func TestCombineLatest(t *testing.T) {
-	var index int64 = 0
-	in1 := Interval(timeoutContext(time.Millisecond*140), time.Millisecond*30, func(i interface{}) interface{} {
-		index++
-		return index
-	})
-
-	index2 := -1
-	in2 := Interval(timeoutContext(time.Millisecond*140), time.Millisecond*50, func(i interface{}) interface{} {
-		index2++
-		return string(97 + index2)
+	in1 := IntervalRange(1, 4, time.Millisecond*30, 0)
+	in2 := Map(IntervalRange(0, 2, time.Millisecond*50, 0), func(i interface{}) interface{} {
+		return string(97 + i.(int))
 	})
 
 	out := Map(CombineLatest(in1, in2), func(i interface{}) interface{} {
 		values := i.([]interface{})
-		return strconv.FormatInt(values[0].(int64), 10) + values[1].(string)
+		return strconv.Itoa(values[0].(int)) + values[1].(string)
 	})
 
 	assertChanWithValues(t, out, []interface{}{"1a", "2a", "3a", "3b", "4b"})
@@ -397,15 +384,13 @@ func TestStartWith(t *testing.T) {
 
 func TestSwitch(t *testing.T) {
 	var index int64 = 0
-	in := Interval(timeoutContext(time.Millisecond*60), time.Millisecond*25, func(i interface{}) interface{} {
+	in := Interval(timeoutContext(time.Millisecond*60), time.Millisecond*25, 0, func(i interface{}) interface{} {
 		index++
 
 		idx := index
 
-		var subIndex int64 = 0
-		return Interval(timeoutContext(time.Millisecond*35), time.Millisecond*10, func(i interface{}) interface{} {
-			subIndex++
-			return strconv.FormatInt(idx, 10) + strconv.FormatInt(subIndex, 10)
+		return Map(IntervalRange(1, 3, time.Millisecond*10, 0), func(i interface{}) interface{} {
+			return strconv.FormatInt(idx, 10) + strconv.Itoa(i.(int))
 		})
 	})
 
@@ -445,11 +430,7 @@ func TestZip(t *testing.T) {
 }
 
 func TestDelay(t *testing.T) {
-	index := 0
-	in := Interval(timeoutContext(time.Millisecond*35), time.Millisecond*10, func(i interface{}) interface{} {
-		index++
-		return index
-	})
+	in := IntervalRange(1, 3, time.Millisecond*10, 0)
 
 	length := 0
 	out := Delay(in, time.Millisecond*100)
@@ -463,7 +444,7 @@ func TestDelay(t *testing.T) {
 }
 
 func TestTimeInterval(t *testing.T) {
-	in := Interval(timeoutContext(time.Millisecond*100), time.Millisecond*30, nil)
+	in := Interval(timeoutContext(time.Millisecond*100), time.Millisecond*30, 0, nil)
 	out := TimeInterval(in)
 	vals := Values(out)
 
@@ -471,7 +452,7 @@ func TestTimeInterval(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	in := Interval(timeoutContext(time.Millisecond*100), time.Millisecond*30, nil)
+	in := Interval(timeoutContext(time.Millisecond*100), time.Millisecond*30, 0, nil)
 
 	out := Timeout(in, time.Millisecond*20)
 
@@ -485,7 +466,7 @@ func TestTimeout(t *testing.T) {
 }
 
 func TestTimestamp(t *testing.T) {
-	in := Interval(timeoutContext(time.Millisecond*50), time.Millisecond*20, nil)
+	in := Interval(timeoutContext(time.Millisecond*50), time.Millisecond*20, 0, nil)
 	out := Timestamp(in)
 	vals := Values(out)
 
@@ -498,33 +479,42 @@ func TestTimestamp(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	in1 := From([] interface{}{1,2,3})
+	in1 := From([]interface{}{1, 2, 3})
 	out1 := All(in1, func(i interface{}) bool {
-		return i.(int) % 2 == 0
+		return i.(int)%2 == 0
 	})
 
 	assertChanWithValues(t, out1, []interface{}{false})
 
-	in2 := From([] interface{}{2,4})
+	in2 := From([]interface{}{2, 4})
 	out2 := All(in2, func(i interface{}) bool {
-		return i.(int) % 2 == 0
+		return i.(int)%2 == 0
 	})
 
 	assertChanWithValues(t, out2, []interface{}{true})
 }
 
 func TestContains(t *testing.T) {
-	in1 := From([] interface{}{1,2,3})
+	in1 := From([]interface{}{1, 2, 3})
 	out1 := Contains(in1, func(i interface{}) bool {
-		return i.(int) % 2 == 0
+		return i.(int)%2 == 0
 	})
 
 	assertChanWithValues(t, out1, []interface{}{true})
 
-	in2 := From([] interface{}{2,4})
+	in2 := From([]interface{}{2, 4})
 	out2 := Contains(in2, func(i interface{}) bool {
-		return i.(int) % 2 != 0
+		return i.(int)%2 != 0
 	})
 
 	assertChanWithValues(t, out2, []interface{}{false})
+}
+
+func TestAmb(t *testing.T) {
+	in1 := IntervalRange(0, 5, time.Millisecond*10, time.Millisecond*50)
+	in2 := IntervalRange(10, 3, time.Millisecond*20, 0)
+
+	out := Amb(in1, in2)
+
+	assertChanWithValues(t, out, []interface{}{10, 11, 12})
 }

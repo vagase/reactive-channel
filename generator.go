@@ -26,10 +26,14 @@ func Values(in chan interface{}) []interface{} {
 	return out
 }
 
-func Interval(ctx context.Context, interval time.Duration, mapFunc MapFunc) chan interface{} {
+func Interval(ctx context.Context, interval time.Duration, delay time.Duration, mapFunc MapFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
+		if delay > 0 {
+			time.Sleep(delay)
+		}
+
 		ticker := time.NewTicker(interval)
 
 		defer func() {
@@ -58,10 +62,24 @@ func Interval(ctx context.Context, interval time.Duration, mapFunc MapFunc) chan
 	return out
 }
 
-func Range(start int, size int) chan interface{} {
-	out := make(chan interface{}, size)
+func IntervalRange(start int, count int, interval time.Duration, delay time.Duration) chan interface{} {
+	timeout := interval*time.Duration(count) + time.Duration(float64(interval)*0.5)
+	timeoutContext, _ := context.WithTimeout(context.Background(), timeout)
 
-	for index := 0; index < size; index++ {
+	index := 0
+	return Interval(timeoutContext, interval, delay, func(i interface{}) interface{} {
+		res := start + index
+
+		index++
+
+		return res
+	})
+}
+
+func Range(start int, count int) chan interface{} {
+	out := make(chan interface{}, count)
+
+	for index := 0; index < count; index++ {
 		out <- start + index
 	}
 

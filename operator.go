@@ -696,7 +696,7 @@ func Timestamp(in chan interface{}) chan interface{} {
 
 type MatchFunc func(interface{}) bool
 
-func All(in chan interface{}, match MatchFunc) chan interface {} {
+func All(in chan interface{}, match MatchFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
@@ -729,6 +729,53 @@ func Contains(in chan interface{}, match MatchFunc) chan interface{} {
 		}
 
 		out <- false
+	}()
+
+	return out
+}
+
+func Amb(in ...chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		chans := in
+
+		removeChanAtIndex := func(index int) {
+			chans = append(chans[:index], chans[index+1:]...)
+		}
+
+		listen := func() (int, reflect.Value, bool) {
+			cases := make([]reflect.SelectCase, len(chans))
+			for i, ch := range chans {
+				cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
+			}
+
+			return reflect.Select(cases)
+		}
+
+		var targetChan chan interface{}
+
+		for {
+			index, value, ok := listen()
+
+			if ok {
+				targetChan = chans[index]
+				out <- value.Interface()
+				break
+			} else {
+				removeChanAtIndex(index)
+
+				if len(chans) == 0 {
+					return
+				}
+			}
+		}
+
+		for val := range targetChan {
+			out <- val
+		}
 	}()
 
 	return out

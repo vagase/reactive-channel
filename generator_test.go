@@ -16,7 +16,7 @@ func TestFromTo(t *testing.T) {
 }
 
 func TestInterval(t *testing.T) {
-	out1 := Interval(timeoutContext(time.Millisecond*55), time.Millisecond*10, nil)
+	out1 := Interval(timeoutContext(time.Millisecond*55), time.Millisecond*10, 0, nil)
 
 	values := Values(out1)
 	if len(values) != 5 {
@@ -24,7 +24,7 @@ func TestInterval(t *testing.T) {
 	}
 
 	index := 0
-	out2 := Interval(timeoutContext(time.Millisecond*55), time.Millisecond*10, func(i interface{}) interface{} {
+	out2 := Interval(timeoutContext(time.Millisecond*55), time.Millisecond*10, 0, func(i interface{}) interface{} {
 		index++
 		return index
 	})
