@@ -898,3 +898,24 @@ func SkipUntil(in chan interface{}, untilChan chan interface{}) chan interface{}
 
 	return out
 }
+
+func SkipWhile(in chan interface{}, match MatchFunc) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		accept := false
+
+		for val := range in {
+			if accept {
+				out <- val
+			} else if match(val) {
+				accept = true
+				out <- val
+			}
+		}
+	}()
+
+	return out
+}

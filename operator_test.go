@@ -563,3 +563,23 @@ func TestSkipUntil(t *testing.T) {
 	out2 := SkipUntil(in2, skipUntil2)
 	assertChanWithValues(t, out2, []interface{} {})
 }
+
+func TestSkipWhile(t *testing.T) {
+	in1 := From([] interface{} {1, 2, 3, 4})
+	out1 := SkipWhile(in1, func(i interface{}) bool {
+		return i.(int) > 2
+	})
+	assertChanWithValues(t, out1, [] interface{} {3, 4})
+
+	in2 := From([] interface{} {1, 2, 3, 4})
+	out2 := SkipWhile(in2, func(i interface{}) bool {
+		return i.(int) > 10
+	})
+	assertChanWithValues(t, out2, [] interface{} {})
+
+	in3 := From([] interface{} {})
+	out3 := SkipWhile(in3, func(i interface{}) bool {
+		return i.(int) > 10
+	})
+	assertChanWithValues(t, out3, [] interface{} {})
+}
