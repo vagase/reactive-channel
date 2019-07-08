@@ -711,3 +711,8 @@ func TestEmpty(t *testing.T) {
 	out2 := Empty(in2)
 	assertChanWithValues(t, out2, [] interface{} {false})
 }
+
+func TestJust(t *testing.T) {
+	in := Just(1)
+	assertChanWithValues(t, in, []interface{} {1})
+}

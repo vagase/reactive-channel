@@ -1150,3 +1150,7 @@ func Empty(in chan interface{}) chan interface{} {
 
 	return out
 }
+
+func Just(val interface{}) chan interface{} {
+	return From([] interface{} {val})
+}
