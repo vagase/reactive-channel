@@ -66,7 +66,7 @@ func isArrayEqual(v1 SortInterfaceArray, v2 SortInterfaceArray, strict bool) boo
 	for index, v := range v1 {
 		switch v.(type) {
 		case []interface{}:
-			if !isArrayEqual(v.([]interface{}), v2[index].([] interface{}), strict) {
+			if !isArrayEqual(v.([]interface{}), v2[index].([]interface{}), strict) {
 				return false
 			}
 		default:
@@ -109,7 +109,7 @@ func TestMap(t *testing.T) {
 }
 
 func TestReduce(t *testing.T) {
-	in := From([] interface{} {1,2,3,4})
+	in := From([]interface{}{1, 2, 3, 4})
 	out := Reduce(in, func(i interface{}, i2 interface{}) interface{} {
 		return i.(int) + i2.(int)
 	}, 0)
@@ -187,23 +187,23 @@ func TestBroadcast(t *testing.T) {
 }
 
 func TestBuffer(t *testing.T) {
-	out1 := Buffer(From([]interface{}{1,2,3,4,5,6,7}), 2,3)
-	assertChanWithValues(t, out1, []interface{}{[]interface{}{1,2}, []interface{}{4,5}})
+	out1 := Buffer(From([]interface{}{1, 2, 3, 4, 5, 6, 7}), 2, 3)
+	assertChanWithValues(t, out1, []interface{}{[]interface{}{1, 2}, []interface{}{4, 5}})
 
-	out2 := Buffer(From([]interface{}{1,2,3,4}), 2,0)
-	assertChanWithValues(t, out2, []interface{}{[]interface{}{1,2}, []interface{}{3, 4}})
+	out2 := Buffer(From([]interface{}{1, 2, 3, 4}), 2, 0)
+	assertChanWithValues(t, out2, []interface{}{[]interface{}{1, 2}, []interface{}{3, 4}})
 }
 
 func TestFlatMap(t *testing.T) {
-	in := From([]interface{}{[]interface{}{1,2}, []interface{}{3,4}})
+	in := From([]interface{}{[]interface{}{1, 2}, []interface{}{3, 4}})
 	out := FlatMap(in)
-	assertChanWithValues(t, out, []interface{}{1,2,3,4})
+	assertChanWithValues(t, out, []interface{}{1, 2, 3, 4})
 }
 
 func TestGroupBy(t *testing.T) {
 	out1 := To(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
 		num := i.(int)
-		return num % 2 == 0
+		return num%2 == 0
 	}))
 
 	assertEqual(t, out1[0], map[interface{}][]interface{}{
@@ -213,7 +213,7 @@ func TestGroupBy(t *testing.T) {
 
 	out2 := To(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
 		num := i.(int)
-		if num % 2 == 0 {
+		if num%2 == 0 {
 			return "even"
 		} else {
 			return "odd"
@@ -221,8 +221,8 @@ func TestGroupBy(t *testing.T) {
 	}))
 
 	assertEqual(t, out2[0], map[interface{}][]interface{}{
-		"odd": {1, 3},
-		"even":  {2, 4},
+		"odd":  {1, 3},
+		"even": {2, 4},
 	})
 }
 
@@ -230,7 +230,7 @@ func TestDebounce(t *testing.T) {
 	in := make(chan interface{})
 
 	go func() {
-		ticker := time.NewTicker(time.Millisecond *60)
+		ticker := time.NewTicker(time.Millisecond * 60)
 
 		index := 0
 		for {
@@ -240,157 +240,175 @@ func TestDebounce(t *testing.T) {
 				return
 			}
 
-			<- ticker.C
+			<-ticker.C
 			in <- index
 			index++
 		}
 	}()
 
-	out := Debounce(in, time.Millisecond * 100)
+	out := Debounce(in, time.Millisecond*100)
 
-	assertChanWithValues(t, out, [] interface{} {0 ,2, 4})
+	assertChanWithValues(t, out, []interface{}{0, 2, 4})
 }
 
 func TestDistinct(t *testing.T) {
-	in := From([]interface{} {1,2,2,3,3,5})
+	in := From([]interface{}{1, 2, 2, 3, 3, 5})
 	out := Distinct(in)
 
-	assertChanWithValues(t, out, []interface{}{1,2,3,5})
+	assertChanWithValues(t, out, []interface{}{1, 2, 3, 5})
 }
 
 func TestElementAt(t *testing.T) {
-	out1 := ElementAt(From([]interface{}{0,1,2,3}), 2)
+	out1 := ElementAt(From([]interface{}{0, 1, 2, 3}), 2)
 	assertChanWithValues(t, out1, []interface{}{2})
 
-	out2 := ElementAt(From([]interface{}{0,1,2,3}), 6)
+	out2 := ElementAt(From([]interface{}{0, 1, 2, 3}), 6)
 	assertChanWithValues(t, out2, []interface{}{})
 
-
-	out3 := ElementAt(From([]interface{}{0,1,2,3}), -1)
+	out3 := ElementAt(From([]interface{}{0, 1, 2, 3}), -1)
 	assertChanWithValues(t, out3, []interface{}{})
 }
 
 func TestFirst(t *testing.T) {
-	out1 := First(From([]interface{}{0,1,2,3}), )
+	out1 := First(From([]interface{}{0, 1, 2, 3}))
 	assertChanWithValues(t, out1, []interface{}{0})
 
-	out2 := First(From([] interface{} {}))
+	out2 := First(From([]interface{}{}))
 	assertChanWithValues(t, out2, []interface{}{})
 }
 
 func TestLast(t *testing.T) {
-	out1 := Last(From([] interface{} {1,2,3}))
+	out1 := Last(From([]interface{}{1, 2, 3}))
 	assertChanWithValues(t, out1, []interface{}{3})
 
-	out2 := Last(From([] interface{}{}))
+	out2 := Last(From([]interface{}{}))
 	assertChanWithValues(t, out2, []interface{}{})
 }
 
 func TestIgnoreElements(t *testing.T) {
-	out1 := IgnoreElements(From([] interface{} {1,2,3}))
+	out1 := IgnoreElements(From([]interface{}{1, 2, 3}))
 	assertChanWithValues(t, out1, []interface{}{})
 
-	out2 := IgnoreElements(From([] interface{} {}))
+	out2 := IgnoreElements(From([]interface{}{}))
 	assertChanWithValues(t, out2, []interface{}{})
 }
 
 func TestSample(t *testing.T) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond * 210)
+	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*210)
 
 	index := 0
-	in := Interval(ctx, time.Millisecond * 30, func(i interface{}) interface{} {
+	in := Interval(ctx, time.Millisecond*30, func(i interface{}) interface{} {
 		index++
 		return index
 	})
 
-	out := Sample(in, time.Millisecond * 50)
+	out := Sample(in, time.Millisecond*50)
 
-	assertChanWithValues(t, out, [] interface{} {1, 3, 4, 6})
+	assertChanWithValues(t, out, []interface{}{1, 3, 4, 6})
 }
 
 func TestSkip(t *testing.T) {
-	in := From([] interface{} {1,2,3,4})
+	in := From([]interface{}{1, 2, 3, 4})
 	out := Skip(in, 2)
-	assertChanWithValues(t, out, [] interface{} {3, 4})
+	assertChanWithValues(t, out, []interface{}{3, 4})
 
-	in2 := From([] interface{} {1,2,3,4})
+	in2 := From([]interface{}{1, 2, 3, 4})
 	out2 := Skip(in2, 5)
-	assertChanWithValues(t, out2, [] interface{} {})
+	assertChanWithValues(t, out2, []interface{}{})
 
-	in3 := From([] interface{} {1,2,3,4})
+	in3 := From([]interface{}{1, 2, 3, 4})
 	out3 := Skip(in3, 0)
-	assertChanWithValues(t, out3, [] interface{} {1,2, 3, 4})
+	assertChanWithValues(t, out3, []interface{}{1, 2, 3, 4})
 }
 
 func TestSkipLast(t *testing.T) {
-	in1 := From([] interface{} {1,2,3,4})
+	in1 := From([]interface{}{1, 2, 3, 4})
 	out1 := SkipLast(in1, 2)
-	assertChanWithValues(t, out1, [] interface{} {1, 2})
+	assertChanWithValues(t, out1, []interface{}{1, 2})
 
-	in2 := From([] interface{} {1,2})
+	in2 := From([]interface{}{1, 2})
 	out2 := SkipLast(in2, 3)
-	assertChanWithValues(t, out2, [] interface{} {})
+	assertChanWithValues(t, out2, []interface{}{})
 }
 
 func TestTake(t *testing.T) {
-	in1 := From([] interface{} {1,2,3,4})
+	in1 := From([]interface{}{1, 2, 3, 4})
 	out1 := Take(in1, 0)
-	assertChanWithValues(t, out1, [] interface{} {})
+	assertChanWithValues(t, out1, []interface{}{})
 
-	in2 := From([] interface{} {1,2,3,4})
+	in2 := From([]interface{}{1, 2, 3, 4})
 	out2 := Take(in2, 2)
-	assertChanWithValues(t, out2, [] interface{} {1, 2})
+	assertChanWithValues(t, out2, []interface{}{1, 2})
 
-	in3 := From([] interface{} {1,2})
+	in3 := From([]interface{}{1, 2})
 	out3 := Take(in3, 3)
-	assertChanWithValues(t, out3, [] interface{} {1, 2})
+	assertChanWithValues(t, out3, []interface{}{1, 2})
 }
 
 func TestTakeLast(t *testing.T) {
-	in1 := From([] interface{} {1,2,3,4})
+	in1 := From([]interface{}{1, 2, 3, 4})
 	out1 := TakeLast(in1, 0)
-	assertChanWithValues(t, out1, [] interface{} {})
+	assertChanWithValues(t, out1, []interface{}{})
 
-	in2 := From([] interface{} {1,2,3,4})
+	in2 := From([]interface{}{1, 2, 3, 4})
 	out2 := TakeLast(in2, 2)
-	assertChanWithValues(t, out2, [] interface{} {3, 4})
+	assertChanWithValues(t, out2, []interface{}{3, 4})
 
-	in3 := From([] interface{} {1,2,3,4})
+	in3 := From([]interface{}{1, 2, 3, 4})
 	out3 := TakeLast(in3, 5)
-	assertChanWithValues(t, out3, [] interface{} {1, 2, 3, 4})
+	assertChanWithValues(t, out3, []interface{}{1, 2, 3, 4})
 }
 
 func TestCombineLatest(t *testing.T) {
 	var index int64 = 0
-	in1 := Interval(timeoutContext(time.Millisecond * 140), time.Millisecond * 30, func(i interface{}) interface{} {
+	in1 := Interval(timeoutContext(time.Millisecond*140), time.Millisecond*30, func(i interface{}) interface{} {
 		index++
 		return index
 	})
 
 	index2 := -1
-	in2 := Interval(timeoutContext(time.Millisecond * 140), time.Millisecond * 50, func(i interface{}) interface{} {
-		index2 ++
-		return string(97 + index2 )
+	in2 := Interval(timeoutContext(time.Millisecond*140), time.Millisecond*50, func(i interface{}) interface{} {
+		index2++
+		return string(97 + index2)
 	})
 
 	out := Map(CombineLatest(in1, in2), func(i interface{}) interface{} {
 		values := i.([]interface{})
 		return strconv.FormatInt(values[0].(int64), 10) + values[1].(string)
 	})
-	
-	assertChanWithValues(t, out, [] interface{} {"1a", "2a", "3a", "3b", "4b"})
+
+	assertChanWithValues(t, out, []interface{}{"1a", "2a", "3a", "3b", "4b"})
 }
 
 func TestStartWith(t *testing.T) {
-	in1 := From([]interface{} {3, 4})
+	in1 := From([]interface{}{3, 4})
 	out1 := StartWith(in1, 1, 2)
-	assertChanWithValues(t, out1, [] interface{}{1,2,3,4})
+	assertChanWithValues(t, out1, []interface{}{1, 2, 3, 4})
 
-	in2 := From([]interface{} {3, 4})
+	in2 := From([]interface{}{3, 4})
 	out2 := StartWith(in2)
-	assertChanWithValues(t, out2, [] interface{}{3,4})
+	assertChanWithValues(t, out2, []interface{}{3, 4})
 
-	in3 := From([]interface{} {})
+	in3 := From([]interface{}{})
 	out3 := StartWith(in3, 1, 2)
-	assertChanWithValues(t, out3, [] interface{}{1,2})
+	assertChanWithValues(t, out3, []interface{}{1, 2})
+}
+
+func TestSwitch(t *testing.T) {
+	var index int64 = 0
+	in := Interval(timeoutContext(time.Millisecond*60), time.Millisecond*25, func(i interface{}) interface{} {
+		index++
+
+		idx := index
+
+		var subIndex int64 = 0
+		return Interval(timeoutContext(time.Millisecond*35), time.Millisecond*10, func(i interface{}) interface{} {
+			subIndex++
+			return strconv.FormatInt(idx, 10) + strconv.FormatInt(subIndex, 10)
+		})
+	})
+
+	out := Switch(in)
+
+	assertChanWithValues(t, out, []interface{}{"11", "12", "21", "22", "23"})
 }

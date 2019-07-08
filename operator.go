@@ -1,6 +1,7 @@
 package reactive_channel
 
 import (
+	"context"
 	"reflect"
 	"sync"
 	"time"
@@ -21,8 +22,9 @@ func Map(in <-chan interface{}, mapFunc MapFunc) chan interface{} {
 	return out
 }
 
-type ReduceFunc func(interface{}, interface{}) interface {}
-func Reduce(in <- chan interface{}, reduceFunc ReduceFunc, initialVal interface{}) chan interface {} {
+type ReduceFunc func(interface{}, interface{}) interface{}
+
+func Reduce(in <-chan interface{}, reduceFunc ReduceFunc, initialVal interface{}) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
@@ -46,7 +48,7 @@ func Filter(in <-chan interface{}, filterFunc FilterFunc) chan interface{} {
 
 	go func() {
 		defer close(out)
-		for val := range in{
+		for val := range in {
 			if filterFunc(val) {
 				out <- val
 			}
@@ -69,7 +71,7 @@ func Merge(chans ...chan interface{}) chan interface{} {
 		ch := c
 
 		go func() {
-			for val := range ch{
+			for val := range ch {
 				out <- val
 			}
 
@@ -142,12 +144,12 @@ func Buffer(in chan interface{}, count int, skip int) chan interface{} {
 	go func() {
 		defer close(out)
 
-		var buffer [] interface{}
+		var buffer []interface{}
 		counter := 0
 
 		for val := range in {
 			counter++
-			if skip > 0 && counter % skip == 0 {
+			if skip > 0 && counter%skip == 0 {
 				continue
 			}
 
@@ -165,14 +167,14 @@ func Buffer(in chan interface{}, count int, skip int) chan interface{} {
 	return out
 }
 
-func FlatMap(in chan interface{}) chan interface {} {
+func FlatMap(in chan interface{}) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
 		defer close(out)
 
 		for val := range in {
-			list := val.([] interface{})
+			list := val.([]interface{})
 			for _, item := range list {
 				out <- item
 			}
@@ -184,17 +186,17 @@ func FlatMap(in chan interface{}) chan interface {} {
 
 type GroupByFunc func(interface{}) interface{}
 
-func GroupBy(in chan interface{}, groupByFunc GroupByFunc ) chan interface{} {
+func GroupBy(in chan interface{}, groupByFunc GroupByFunc) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
-		result := map[interface{}] []interface{}{}
+		result := map[interface{}][]interface{}{}
 		defer func() {
 			out <- result
 			close(out)
 		}()
 
-		for val := range in{
+		for val := range in {
 			key := groupByFunc(val)
 			result[key] = append(result[key], val)
 		}
@@ -211,7 +213,7 @@ func Debounce(in chan interface{}, duration time.Duration) chan interface{} {
 
 		var lastTime *time.Time
 
-		for val := range in{
+		for val := range in {
 			now := time.Now()
 
 			if lastTime != nil && now.Sub(*lastTime) < duration {
@@ -282,7 +284,7 @@ func Last(in chan interface{}) chan interface{} {
 		defer close(out)
 
 		var lastVal interface{}
-		for val:= range in {
+		for val := range in {
 			lastVal = val
 		}
 
@@ -323,13 +325,13 @@ func Sample(in chan interface{}, interval time.Duration) chan interface{} {
 
 		for {
 			select {
-			case val, ok := <- in:
+			case val, ok := <-in:
 				if ok {
 					valToEmit = val
 				} else {
 					return
 				}
-			case <- ticker.C:
+			case <-ticker.C:
 				if valToEmit != nil {
 					out <- valToEmit
 					valToEmit = nil
@@ -341,7 +343,7 @@ func Sample(in chan interface{}, interval time.Duration) chan interface{} {
 	return out
 }
 
-func Skip (in chan interface{}, count int) chan interface{} {
+func Skip(in chan interface{}, count int) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
@@ -371,7 +373,7 @@ func SkipLast(in chan interface{}, count int) chan interface{} {
 	go func() {
 		defer close(out)
 
-		var cache []interface {}
+		var cache []interface{}
 
 		for val := range in {
 			if len(cache) == count {
@@ -413,7 +415,7 @@ func TakeLast(in chan interface{}, count int) chan interface{} {
 	go func() {
 		defer close(out)
 
-		var cache [] interface{}
+		var cache []interface{}
 
 		for val := range in {
 			cache = append(cache, val)
@@ -430,7 +432,7 @@ func TakeLast(in chan interface{}, count int) chan interface{} {
 	return out
 }
 
-func CombineLatest(chans... chan interface{}) chan interface{} {
+func CombineLatest(chans ...chan interface{}) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
@@ -441,7 +443,7 @@ func CombineLatest(chans... chan interface{}) chan interface{} {
 			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
 		}
 
-		values := make([] interface{}, len(chans))
+		values := make([]interface{}, len(chans))
 
 		for {
 			chosen, value, ok := reflect.Select(cases)
@@ -449,7 +451,7 @@ func CombineLatest(chans... chan interface{}) chan interface{} {
 				values[chosen] = value.Interface()
 
 				nilFound := false
-				for _, v := range values  {
+				for _, v := range values {
 					if v == nil {
 						nilFound = true
 						break
@@ -468,8 +470,8 @@ func CombineLatest(chans... chan interface{}) chan interface{} {
 	return out
 }
 
-func StartWith(in chan interface{}, vals... interface{}) chan interface{} {
-	out := make(chan interface{}, len(vals) + 1)
+func StartWith(in chan interface{}, vals ...interface{}) chan interface{} {
+	out := make(chan interface{}, len(vals)+1)
 
 	for _, val := range vals {
 		out <- val
@@ -481,6 +483,50 @@ func StartWith(in chan interface{}, vals... interface{}) chan interface{} {
 		for val := range in {
 			out <- val
 		}
+	}()
+
+	return out
+}
+
+func Switch(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		var cancelSubChan context.CancelFunc
+		var subChanContext context.Context
+
+		for newChan := range in {
+			if cancelSubChan != nil {
+				cancelSubChan()
+				cancelSubChan = nil
+			}
+
+			var cancelSubChanContext context.Context
+			cancelSubChanContext, cancelSubChan = context.WithCancel(context.Background())
+
+			var subChanCancel context.CancelFunc
+			subChanContext, subChanCancel = context.WithCancel(context.Background())
+
+			go func() {
+				for {
+					select {
+					case val, ok := <-newChan.(chan interface{}):
+						if ok {
+							out <- val
+						} else {
+							subChanCancel()
+							return
+						}
+					case <-cancelSubChanContext.Done():
+						return
+					}
+				}
+			}()
+		}
+
+		<-subChanContext.Done()
+
+		close(out)
 	}()
 
 	return out
