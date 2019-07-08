@@ -2,6 +2,7 @@ package reactive_channel
 
 import (
 	"context"
+	"github.com/bmizerany/assert"
 	"reflect"
 	"sort"
 	"strconv"
@@ -80,7 +81,7 @@ func isArrayEqual(v1 SortInterfaceArray, v2 SortInterfaceArray, strict bool) boo
 }
 
 func assertChanWithValues(t *testing.T, c chan interface{}, vals []interface{}) {
-	inVals := To(c)
+	inVals := Values(c)
 	if !isArrayEqual(inVals, vals, true) {
 		t.Errorf("assertChanWithValues fail, chan: %v, array: %v", inVals, vals)
 	}
@@ -136,7 +137,7 @@ func TestMerge(t *testing.T) {
 
 	ch := Merge(c1, c2, c3, c4)
 
-	array := To(ch)
+	array := Values(ch)
 	if !isArrayEqual(array, []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, false) {
 		t.Error("merge values not equal to original ones")
 	}
@@ -156,7 +157,7 @@ func TestBroadcast(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		vals := To(sub1)
+		vals := Values(sub1)
 
 		if !isArrayEqual(vals, arr, true) {
 			t.Errorf("values not equal: %v, original: %v", vals, arr)
@@ -166,7 +167,7 @@ func TestBroadcast(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		vals := To(sub2)
+		vals := Values(sub2)
 
 		if !isArrayEqual(vals, arr, true) {
 			t.Errorf("values not equal: %v, original: %v", vals, arr)
@@ -176,7 +177,7 @@ func TestBroadcast(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		vals := To(sub3)
+		vals := Values(sub3)
 
 		if !isArrayEqual(vals, arr, true) {
 			t.Errorf("values not equal: %v, original: %v", vals, arr)
@@ -201,7 +202,7 @@ func TestFlatMap(t *testing.T) {
 }
 
 func TestGroupBy(t *testing.T) {
-	out1 := To(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
+	out1 := Values(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
 		num := i.(int)
 		return num%2 == 0
 	}))
@@ -211,7 +212,7 @@ func TestGroupBy(t *testing.T) {
 		false: {1, 3},
 	})
 
-	out2 := To(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
+	out2 := Values(GroupBy(From([]interface{}{1, 2, 3, 4}), func(i interface{}) interface{} {
 		num := i.(int)
 		if num%2 == 0 {
 			return "even"
@@ -421,7 +422,7 @@ func TestZip(t *testing.T) {
 		return strconv.Itoa(arr[0].(int)) + strconv.Itoa(arr[1].(int))
 	})
 
-	assertChanWithValues(t, out1, [] interface{} {"05", "16", "27"})
+	assertChanWithValues(t, out1, []interface{}{"05", "16", "27"})
 
 	in21 := Range(0, 0)
 	in22 := Range(5, 10)
@@ -430,7 +431,7 @@ func TestZip(t *testing.T) {
 		return strconv.Itoa(arr[0].(int)) + strconv.Itoa(arr[1].(int))
 	})
 
-	assertChanWithValues(t, out2, [] interface{} {})
+	assertChanWithValues(t, out2, []interface{}{})
 
 	in31 := Range(0, 3)
 	in32 := Range(5, 10)
@@ -440,18 +441,18 @@ func TestZip(t *testing.T) {
 		return strconv.Itoa(arr[0].(int)) + strconv.Itoa(arr[1].(int)) + strconv.Itoa(arr[2].(int))
 	})
 
-	assertChanWithValues(t, out3, [] interface{} {"057", "168"})
+	assertChanWithValues(t, out3, []interface{}{"057", "168"})
 }
 
 func TestDelay(t *testing.T) {
 	index := 0
-	in := Interval(timeoutContext(time.Millisecond * 35), time.Millisecond * 10, func(i interface{}) interface{} {
+	in := Interval(timeoutContext(time.Millisecond*35), time.Millisecond*10, func(i interface{}) interface{} {
 		index++
 		return index
 	})
 
 	length := 0
-	out := Delay(in, time.Millisecond * 100)
+	out := Delay(in, time.Millisecond*100)
 
 	for val := range out {
 		length++
@@ -462,23 +463,36 @@ func TestDelay(t *testing.T) {
 }
 
 func TestTimeInterval(t *testing.T) {
-	in := Interval(timeoutContext(time.Millisecond * 100), time.Millisecond * 30, nil)
+	in := Interval(timeoutContext(time.Millisecond*100), time.Millisecond*30, nil)
 	out := TimeInterval(in)
-	vals := To(out)
+	vals := Values(out)
 
 	assertEqual(t, len(vals), 3)
 }
 
 func TestTimeout(t *testing.T) {
-	in := Interval(timeoutContext(time.Millisecond * 100), time.Millisecond * 30, nil)
+	in := Interval(timeoutContext(time.Millisecond*100), time.Millisecond*30, nil)
 
-	out := Timeout(in, time.Millisecond * 20)
+	out := Timeout(in, time.Millisecond*20)
 
-	error, _ :=  <- out
+	error, _ := <-out
 
 	switch error.(type) {
 	case TimeoutError:
 	default:
 		t.Errorf("got: %v, while expecting TimeoutError", error)
 	}
+}
+
+func TestTimestamp(t *testing.T) {
+	in := Interval(timeoutContext(time.Millisecond*50), time.Millisecond*20, nil)
+	out := Timestamp(in)
+	vals := Values(out)
+
+	assertEqual(t, len(vals), 2)
+
+	v1 := vals[0].(TimestampItem)
+	v2 := vals[1].(TimestampItem)
+	diff := v2.timestamp.Sub(v1.timestamp) / time.Millisecond
+	assert.T(t, diff <= 25 && diff >= 15)
 }

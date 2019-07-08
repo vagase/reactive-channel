@@ -17,7 +17,7 @@ func From(in []interface{}) chan interface{} {
 	return out
 }
 
-func To(in chan interface{}) []interface{} {
+func Values(in chan interface{}) []interface{} {
 	out := make([]interface{}, 0)
 	for val := range in {
 		out = append(out, val)
@@ -39,7 +39,7 @@ func Interval(ctx context.Context, interval time.Duration, mapFunc MapFunc) chan
 
 		for {
 			select {
-			case val, ok := <- ticker.C:
+			case val, ok := <-ticker.C:
 				if ok {
 					var outVal interface{} = val
 					if mapFunc != nil {
@@ -61,7 +61,7 @@ func Interval(ctx context.Context, interval time.Duration, mapFunc MapFunc) chan
 func Range(start int, size int) chan interface{} {
 	out := make(chan interface{}, size)
 
-	for index := 0 ; index < size; index++ {
+	for index := 0; index < size; index++ {
 		out <- start + index
 	}
 
@@ -74,7 +74,7 @@ func Range(start int, size int) chan interface{} {
  * @immediate:
 	- true: in(1->2->3), out (1->1->2->2->3->3)
 	- false: in(1->2->3), out (1->2->3->1->2->3)
- */
+*/
 func Repeat(in chan interface{}, repeat int, immediate bool) chan interface{} {
 	out := make(chan interface{})
 
@@ -83,15 +83,15 @@ func Repeat(in chan interface{}, repeat int, immediate bool) chan interface{} {
 
 		if immediate {
 			for val := range in {
-				for index := 0; index < repeat; index ++ {
+				for index := 0; index < repeat; index++ {
 					out <- val
 				}
 			}
 		} else {
-			vals := To(in)
+			vals := Values(in)
 
 			for index := 0; index < repeat; index++ {
-				for _, val := range vals{
+				for _, val := range vals {
 					out <- val
 				}
 			}

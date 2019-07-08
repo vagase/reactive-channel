@@ -533,18 +533,17 @@ func Switch(in chan interface{}) chan interface{} {
 	return out
 }
 
-
-func Zip(chans... chan interface{} ) chan interface{} {
-	out := make (chan interface{})
+func Zip(chans ...chan interface{}) chan interface{} {
+	out := make(chan interface{})
 
 	go func() {
 		defer close(out)
 
 		valueCache := make([][]interface{}, len(chans))
-		tryEmit := func () error {
+		tryEmit := func() error {
 			emit := true
 			for _, arr := range valueCache {
-				if len(arr) == 0{
+				if len(arr) == 0 {
 					emit = false
 					break
 				}
@@ -588,7 +587,6 @@ func Zip(chans... chan interface{} ) chan interface{} {
 		}
 	}()
 
-
 	return out
 }
 
@@ -597,7 +595,7 @@ func Delay(in chan interface{}, delay time.Duration) chan interface{} {
 
 	go func() {
 		for {
-			val, ok := <- in
+			val, ok := <-in
 
 			time.AfterFunc(delay, func() {
 				if ok {
@@ -616,9 +614,8 @@ func Delay(in chan interface{}, delay time.Duration) chan interface{} {
 	return out
 }
 
-
 type TimeIntervalItem struct {
-	value interface{}
+	value    interface{}
 	interval time.Duration
 }
 
@@ -651,26 +648,46 @@ func TimeInterval(in chan interface{}) chan interface{} {
 type TimeoutError struct {
 }
 
-func (timeoutError TimeoutError)Error() string {
+func (timeoutError TimeoutError) Error() string {
 	return "timeout error"
 }
 
-func Timeout(in chan interface{}, timeout time.Duration) chan interface {} {
+func Timeout(in chan interface{}, timeout time.Duration) chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
 		defer close(out)
 
 		select {
-			case val, ok := <- in:
-				if ok {
-					out <- val
-				} else {
-					return
-				}
-			case <- time.After(timeout):
-				out <- TimeoutError{}
+		case val, ok := <-in:
+			if ok {
+				out <- val
+			} else {
 				return
+			}
+		case <-time.After(timeout):
+			out <- TimeoutError{}
+			return
+		}
+	}()
+
+	return out
+}
+
+type TimestampItem struct {
+	value     interface{}
+	timestamp time.Time
+}
+
+func Timestamp(in chan interface{}) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		defer close(out)
+
+		for val := range in {
+			item := TimestampItem{val, time.Now()}
+			out <- item
 		}
 	}()
 

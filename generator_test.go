@@ -8,40 +8,40 @@ import (
 func TestFromTo(t *testing.T) {
 	in := []interface{}{1, 2, 3, 4}
 	c := From(in)
-	out := To(c)
+	out := Values(c)
 
 	if !isArrayEqual(in, out, true) {
-		t.Error("From or To failed")
+		t.Error("From or Values failed")
 	}
 }
 
 func TestInterval(t *testing.T) {
-	out1 := Interval(timeoutContext(time.Millisecond * 55), time.Millisecond * 10, nil)
+	out1 := Interval(timeoutContext(time.Millisecond*55), time.Millisecond*10, nil)
 
-	values := To(out1)
+	values := Values(out1)
 	if len(values) != 5 {
 		t.Fail()
 	}
 
 	index := 0
-	out2 := Interval(timeoutContext(time.Millisecond * 55), time.Millisecond * 10, func(i interface{}) interface{} {
+	out2 := Interval(timeoutContext(time.Millisecond*55), time.Millisecond*10, func(i interface{}) interface{} {
 		index++
 		return index
 	})
 
-	assertChanWithValues(t, out2, [] interface{} {1, 2, 3, 4, 5})
+	assertChanWithValues(t, out2, []interface{}{1, 2, 3, 4, 5})
 }
 
 func TestRange(t *testing.T) {
 	ch := Range(3, 4)
-	array := [] interface{} {3, 4, 5, 6}
+	array := []interface{}{3, 4, 5, 6}
 	assertChanWithValues(t, ch, array)
 }
 
 func TestRepeat(t *testing.T) {
 	repeat1 := Repeat(From([]interface{}{1, 2, 3, 4}), 2, true)
-	assertChanWithValues(t, repeat1, []interface{}{1,1,2,2,3,3,4,4})
+	assertChanWithValues(t, repeat1, []interface{}{1, 1, 2, 2, 3, 3, 4, 4})
 
 	repeat2 := Repeat(From([]interface{}{1, 2, 3, 4}), 2, false)
-	assertChanWithValues(t, repeat2, []interface{}{1,2,3,4,1,2,3,4})
+	assertChanWithValues(t, repeat2, []interface{}{1, 2, 3, 4, 1, 2, 3, 4})
 }
