@@ -442,3 +442,21 @@ func TestZip(t *testing.T) {
 
 	assertChanWithValues(t, out3, [] interface{} {"057", "168"})
 }
+
+func TestDelay(t *testing.T) {
+	index := 0
+	in := Interval(timeoutContext(time.Millisecond * 35), time.Millisecond * 10, func(i interface{}) interface{} {
+		index++
+		return index
+	})
+
+	length := 0
+	out := Delay(in, time.Millisecond * 100)
+
+	for val := range out {
+		length++
+		assertEqual(t, length, val)
+	}
+
+	assertEqual(t, length, 3)
+}

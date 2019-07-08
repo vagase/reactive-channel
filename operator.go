@@ -591,3 +591,27 @@ func Zip(chans... chan interface{} ) chan interface{} {
 
 	return out
 }
+
+func Delay(in chan interface{}, delay time.Duration) chan interface{} {
+	out := make(chan interface{})
+
+	go func() {
+		for {
+			val, ok := <- in
+
+			time.AfterFunc(delay, func() {
+				if ok {
+					out <- val
+				} else {
+					close(out)
+				}
+			})
+
+			if !ok {
+				return
+			}
+		}
+	}()
+
+	return out
+}
