@@ -143,16 +143,16 @@ func TestMerge(t *testing.T) {
 	}
 }
 
-func TestBroadcast(t *testing.T) {
+func TestSubscribe(t *testing.T) {
 	arr := []interface{}{1, 2, 3, 4}
 	ch := From(arr)
 
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	sub1 := Broadcast(ch)
-	sub2 := Broadcast(ch)
-	sub3 := Broadcast(ch)
+	sub1 := Subscribe(ch)
+	sub2 := Subscribe(ch)
+	sub3 := Subscribe(ch)
 
 	go func() {
 		defer wg.Done()

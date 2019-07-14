@@ -93,7 +93,7 @@ var subscriptionMap = &sync.Map{}
 /**
  * fan out
  */
-func Broadcast(in chan interface{}) chan interface{} {
+func Subscribe(in chan interface{}) chan interface{} {
 	var subs []chan interface{}
 
 	val, ok := subscriptionMap.Load(in)
